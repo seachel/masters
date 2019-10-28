@@ -1,0 +1,746 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% All the option for the style report can be used (e.g. twoside, ....
+% Moreover, the following options are also available: french, UOdraft,
+% hyperref, ...
+%
+% The options french and UOdraft do not need any explanation.  You may want
+% to add the option twoside to the option UOdraft to further reduce the
+% number of pages.
+%
+% The option  hyperref is for those who would like to use the package
+% hyperref.sty .
+%
+% Avec l'option  french , il est possible de compiler un texte qui
+% possede des accents, ... sans avoir a recourir aux symboles \'e,
+% \"u, etc.  En plus de permettre l'utilisation d'un editeur de texte
+% normal, vous pouvez aussi utiliser votre "spell checker" prefere.
+%
+% With the option NoTofC, the section for the list of symbols isn't
+% included in the table of Contents.  The default is that it is
+% included in the list of contents.
+%
+% To compile the template, on has to do something like
+%
+% latex template.tex
+% latex template.tex
+% latex template.tex
+% makeindex template.idx
+% makeindex template.nlo -s nomencl.ist -o template.nls
+% bibtex template
+% latex template.tex
+% makeindex template.idx
+% makeindex template.nlo -s nomencl.ist -o template.nls
+% bibtex template
+% latex template.tex
+%
+% latex can be replaced by pdflatex if you have jpg or pdf figures. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{UOthesis}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Load the packages that you may need and that have not been loaded yet
+%
+% The following packages have already been loaded:
+% ifthen, graphicx, color, amsmath, amssymb, amscd, amsthm, fancyhdr,
+% nomencl, makeidx, letterpaper, setspace.
+%
+% In addition, for the French option, the following packages are also
+% loaded: babel (french), ucs, inputenc (utf8x), and fontenc (T1).
+% The last three packages let you write accents using the French
+% keyboard.  No need to use \'e, \`e, ...
+%
+% The following packages are needed for the template but may not be
+% needed for your thesis.  If they are not needed, don't hesitate to
+% remove them.
+%
+% WARNING: The packages  babel  and  xy-pic  are incompatible.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{fancybox}
+\usepackage{shadow}
+\usepackage[all]{xy}
+\usepackage{url}
+\usepackage{rotating}
+
+\input{formatting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table of contents, list of figures, list of tables, and list of
+% symbols.
+% If your thesis has section numbers larger than 9, many tables or
+% many figures, a lot of pages, ... then some of the items on a line
+% of the table of contents, the list of tables, the list of figures or
+% the list of symbols may overlap.  The following commands should
+% solve these problems.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\addSpaceContents{1em}         % add space for the section number
+%\addSpaceFigure{1em}           % add space for the figure number
+%\addSpaceTable{1em}            % add space for the table number
+%\addSpacePageNumber{1em}       % add space for the page number
+%\addSpaceRightMargin{1em}      % add space between the title, description,
+                                % ... and the right margin
+%\addSpaceLabelSymbols{1em}     % add space for the label
+%\addSpacePageSymbols{1em}      % add space for the page number
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If you want to allow page breaks in a multi-line equation,
+% comment out the following line.  You may also use this option
+% locally as follows.
+% { \allowdisplaybreaks  multi lines equation  }
+% You may also force a page break in a multi-line equation by adding
+% \displaybreak  after a \\ (i.e. a newline) in your equation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\allowdisplaybreaks
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% To save some trees when writing the thesis, it is possible
+% to print copies of the thesis that do not include the page with the
+% logo, the title page, and the page with the signature.  Comment out
+% the appropriate line below.
+%
+% For the very final version of the thesis that you will submit to
+% the library of the University of Ottawa, you MUST uncomment the
+% \NoLogo command.  There must not be any logo on the very final
+% version.
+%
+% If the option UOdraft has been selected, none of these pages are
+% printed but the title page.  The thesis is als printed two sided.
+%
+% There is no page with the signatures of the supervisor(s) and
+% examiners at the Univ. of Ottawa.  So \NoSignature must stay
+% uncommented.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\NoLogo
+\NoSignatures
+%\NoTitlepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is the command to define the style of the bibliography if
+% BibTeX is used.  The available style in the standard TeX/LaTeX
+% installation are  plain, unsrt, alpha and abbrv
+% plain: The items in the bibliography are in alphabetical order, and
+%        refered to with a number.
+% unsrt: The items in the bibliography are ordered according to their
+%        first appearance in the text, and refered to with a number.
+% alpha: The items in the bibliography are in alphabetical order, and
+%        refered to with an abreviation of the author name plus the
+%        year.
+% abbrv: The items in the bibliography are in alphabetical order, and
+%        refered to with a number.  Moreover, the items in the
+%        bibliography are listed using an abreviation of first names,
+%        months and journal names.
+%
+% The default is plain.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{plain}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Some of the variables that you may or should define.  Comment out
+% those variable that you want to define.  Most of these variables
+% have a default value that is appropriate in most cases.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setUOname{Chelsea Battell}         % Name of the candidat
+\setUOcpryear{2016}               % Year of graduation
+\setUOtitle{The Logic of Hereditary Harrop Formulas as a Specification Logic for Hybrid}  % Title of the thesis
+
+% The following variables have default values which are probably
+% right for all students in mathematics and statistics at UO.
+%\setUO{ }                    % Name of the university
+%\setUOgradfac{ }             % Name of the faculty of graduate studies
+%\setUOprogrfac{ }            % Name of the faculty giving the program
+%\setUOdept{ }                % Name of the department giving the program
+%\setUOfdegree{ }             % Full name of the degree (e.g. Doctorate
+                              % in ...)  See \msc and \phd below.
+%\setUOdegree{ }              % Abbreviation for the name of the degree
+                              % (e.g. Ph.D. )  See \msc and \phd below.
+%\setUOtitlefootnote{ }       % Abbreviation for the name of the degree
+                              % for the footnote about the institute.
+                              % See \msc and \phd below.
+
+% The following 13 variables are NO USED at UO
+%\setUOpdegree{ }             % Abbreviations of the degrees already
+                              % owned by the candidate (e.g. B.Sc.,
+                              % M.Sc., ...)
+% \setUOdatedef{11/11/2015}           % Date of the defence of the thesis
+% \setUOrefone{Bugs Bunny}            % First internal referee
+% \setUOreftwo{Daffy Duck}            % Second internal referee
+% \setUOrefthree{Elmer Fudd}          % Third internal referee
+% \setUOreffour{ }                    % Fourth internal referee
+% \setUOreffive{ }                    % Fifth internal referee
+% \setUOextrefone{Marvin the Martian} % First external referee
+% \setUOextreftwo{Yosemite Sam}       % Second external referee
+% \setUOextrefthree{ }                % Third external referee
+% \setUOsupone{Capitain Haddock}      % First supervisor
+% \setUOsuptwo{Professeur Tournesol}  % Second supervisor
+% \setUOsupthree{ }                   % Third supervisor
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Comment out one of the following option
+% This automatically defined \setUOfdegree{ }, \setUOdegree{ } and
+% \setUOtitlefootnote{ } appropriately.  Thus, \setUOfdegree{ },
+% \setUOdegree{ } and \setUOtitlefootnote{ } are only used for fine
+% tuning when the default values are not appropriate.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\phd                % Comment out for the Ph.D. thesis
+\msc               % Comment out for the M.Sc. thesis
+%\project           % Comment out for the M.Sc. project
+%\uproject          % Comment out for the B.Sc. project
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Location of the logo of the university for the first page of the
+% thesis, as well as the options for \includegraphics to produce the
+% logo.  The default logo is given by the images  UOlogoBW.eps  or
+% UOlogoBW.jpg  in the current directory.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \setUOlogoloc{UOlogoBW}{width=1.2in}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Uncomment the following two lines to switch to 3/2 interline spacing
+% or another interline spacing, use the following command.  The
+% default is single line spacing.  Ask you supervisor if he/she wants
+% a larger interline spacing to write their comments.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \renewcommand{\baselinestretch}{1.5}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                   GENERAL INFORMATION
+%
+% Always use  \cleardoublepage  at the end of a chapter, appendix,
+% , ...  This set up the next page on a odd numbered page if the
+% document is in twoside mode.
+% Use   \clearpage   and    \newpage   elsewhere.
+%
+%  The following environment are already defined:
+%   theo    <-- Theorem
+%   lem     <-- Lemma
+%   defn    <-- Definition
+%   cor     <-- Corollary
+%   prop    <-- Proposition
+%
+% To add your own environment and have them properly numbered, use
+% the command
+% \newtheorem{ label }[theo]{ name of the environment }
+%
+% There is an environment "proof".  There is also a command \qed
+% if you decide to write a proof outside the environment "proof".
+%
+% The commands \caption and \footnote have been redefined to use only
+% a single line spacing as required.
+%
+% The tabular and array environment MUST also use single line
+% spacing.  For this purpose, use the following environment.
+%
+% \begin{singlespace}
+%  your table, array, ...
+% \end{singlespace}
+%
+% You may (and probably should) use the following command for floating
+% figures and tables.
+%
+% \figcap[ ]{ \includegraphics{...} or other figure commands }{Full text
+% for the caption}{Short description for the list of figures at the
+% beginning of the thesis}{label_name for referencing with \ref{} }
+%
+% \tabcap[ ]{ \begin{tabular}{ccc} ... \end{tabular} }{Full text for the
+% caption}{Short description for the list of tables at the beginning
+% of the thesis}{label_name for referencing with \ref{} }
+%
+% The [ ] is optional.  The possible values are:
+% [h]  <- Put the figure or table here in the text.
+% [t]  <- Put the figure or table at the top of the page
+% [b]  <- Put the figure or table at the bottom of the page
+% [p]  <- Put the figure or table on a special page with only figures
+%         or tables.
+% You may also combine them; for instance [tb] tells LaTeX to try to
+% put the table on the top of the page and if this fail on the bottom
+% of the page.  LaTeX is not forced to respect your choice.
+% Some implementations of LaTeX have the additional option H to force
+% LaTeX to put the figure or table where you want.  The standard LaTeX
+% distribution does not have it.
+%
+% There are also two new commands:
+%
+% \nonumchapter{chapter_name}
+% to produce the header of a chapter without a number;
+% the chapter is still listed in the contents.
+%
+% \notachapter{chapter_name}
+% to produce the header of a chapter without a number;
+% the chapter is not listed in the contents.
+%
+% See the files included with the sample for examples.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Your own macros, environments, ...
+% Be careful not to over write the macros and environments of the
+% University style.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{
+  \newtheoremstyle{remarkstyle}{\topsep}{\topsep}{\rm}{}{\bfseries}{.}{.5em}{}
+  \theoremstyle{remarkstyle}
+  \newtheorem{rmk}[theo]{Remark}
+  \newtheorem{egg}[theo]{Example}
+}
+
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\OO}{\mathcal{O}}
+
+\DeclareMathOperator{\Per}{Per}
+\DeclareMathOperator{\IM}{Im}
+\DeclareMathOperator{\KER}{Ker}
+\DeclareMathOperator{\Fix}{Fix}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% We suggest to include your chapters, ... as illustrated below      %
+% and leave this file with as Little of the contents of the thesis   %
+% as it is possible.                                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Include the abstract of your thesis here.
+%
+% The abstract for a M.Sc. must have AT MOST 150 WORDS.
+% The abstract for a Ph.D. must have AT MOST 350 WORDS.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\notachapter{Abstract}
+
+Hybrid is a two-level logical framework that supports higher-order abstract syntax (HOAS), where a specification logic (SL) extends the class of object logics (OLs) we can reason about. We develop a new Hybrid SL and formalize its metatheory, proving weakening, contraction, exchange, and cut admissibility; results that greatly simplify reasoning about OLs in systems providing HOAS. The SL is a sequent calculus defined as an inductive type in Coq and we prove properties by structural induction over SL sequents. We also present a generalized SL and metatheory statement, allowing us to prove many cases of such theorems in a general way and understand how to identify and prove the difficult cases. We make a concrete and measurable improvement to Hybrid with the new SL formalization and provide a technique for abstracting such proofs, leading to a condensed presentation, greater understanding, and a generalization that may be instantiated to other logics.
+
+
+%1. Introduction. In one sentence, what's the topic? 47
+%Hybrid is a two-level logical framework supporting higher-order abstract syntax (HOAS), where a specification logic (SL) extends the class of object logics (OLs) that we can reason about.
+%Hybrid is a logical framework supporting higher-order abstract syntax (HOAS) in representing formal systems or ``object logics'' (OLs) and implemented following a two-level approach, where a specification logic (SL) extends the class of OLs that we can reason about.
+%2. State the problem you tackle. 34
+%We develop a new Hybrid SL and formalize its metatheory, proving weakening, contraction, exchange, and cut admissibility; results that greatly simplify reasoning about OLs in systems providing HOAS.
+%3. Summarize (in one sentence) why nobody else has adequately answered the research question yet.
+%Hybrid is the only known two-level logical framework supporting HOAS implemented in an existing general-purpose theorem prover.
+%...so although related systems....?
+%5. In one sentence, how did you go about doing the research that follows from your big idea?
+%The SL is a sequent calculus defined as an inductive type in Coq and we prove properties by structural induction over SL sequents.
+%4. Explain, in one sentence, how you tackled the research question.
+%We also present a generalized SL and metatheory statement, allowing us to prove many cases of such theorems in a general way and understand how to identify and prove the difficult cases.
+%6. As a single sentence, what's the key impact of your research?
+%We make a concrete and measurable improvement to Hybrid with the new SL formalization and provide a technique for abstracting such proofs, leading to a condensed presentation, greater understanding, and a generalization that may be instantiated to other logics.
+
+% Preface:
+%Hybrid is a logical framework that supports the use of higher-order abstract syntax (HOAS) in representing formal systems or ``object logics'' (OLs). It is implemented in Coq and follows a two-level approach, where a specification logic (SL) is implemented as an inductive type and used to concisely and elegantly encode the inference rules of the formal systems of interest. In this thesis, we develop a new higher-order specification logic based on hereditary Harrop formulas for Hybrid. By increasing the expressive power of the SL beyond what was considered previously, we increase the flexibility of encoding OLs and thus extend the class of formal systems for which we can reason about efficiently. We focus on formalizing an important class of metatheorems for the SL. This class includes properties such as weakening, contraction, exchange, and the admissibility of the cut rule. The cut admissibility theorem establishes consistency and also provides justification for substituting a formula for an assumption in a context of assumptions. It can greatly simplify reasoning about OLs in systems that provide HOAS. The proofs of these theorems are discussed in detail, illustrating the challenges of their formalization. We develop an abstract way in which to present the specification logic and its metatheory and show how it can be used to prove the theorems mentioned above.
+
+
+% Paper abstract:
+%Hybrid is a logical framework that supports the use of higher-order abstract syntax (HOAS) in representing formal systems or ``object logics'' (OLs). It is implemented in Coq and follows a two-level approach, where a specification logic (SL) is implemented as an inductive type and used to concisely and elegantly encode the inference rules of the formal systems of interest. In this paper, we develop a new higher-order specification logic for Hybrid. By increasing the expressive power of the SL beyond what was considered previously, we increase the flexibility of encoding OLs and thus extend the class of formal systems for which we can reason about efficiently. We focus on formalizing the meta-theory of the SL. We develop an abstract way in which to present an important class of meta-theorems. This class includes properties such as weakening, contraction, exchange, and the admissibility of the cut rule. The cut admissibility theorem establishes consistency and also provides justification for substituting a formula for an assumption in a context of assumptions. It can greatly simplify reasoning about OLs in systems that provide HOAS. We discuss the proof of this theorem in detail, illustrating the challenges of its formalization. We present the abstraction and show how it is used to prove all of these theorems.
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% You may include dedications here.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\notachapter{Dedications}   % d\'edicace
+
+To Amy Felty, my advisor and role model.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The command at the end of a chapter.  Don't remove
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% You may include you acknowledgement here.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\notachapter{Acknowledgement}   % Remerciments
+
+Thanks and acknowledgment go to the Natural Sciences and Engineering Research Council (NSERC) of Canada, Professor Amy Felty, and the University of Ottawa for the financial support provided while completing this research.
+
+I am extremely grateful for the guidance provided by Professor Felty to help me through the many challenges faced while completing this degree and for her feedback and assistance in editing all of the presentations and written documents related to this research.
+
+I would also like to thank Alberto Momigliano for the initial encoding of the data structures for the specification logic and discussions through the course of this work.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The command at the end of a chapter.  Don't remove
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The table of contents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The list of figures
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ListOfFigures
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The list of theorems
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\listoftheorems
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The list of tables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\ListOfTables
+%\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The list of symbols.  Some peoples prefer to have the list of
+% symbols at the end of the thesis before the index.  You may do this
+% by moving the following two lines before the index section at the
+% end of the thesis.
+%
+% To define a symbol in the text, one uses the command \nomenclature
+% as in the following examples.
+% \nomenclature{$\alpha$}{the travelling speed of a wave}
+% \nomenclature{$\Gamma$}{the Gamma function}
+% \nomenclature{$\delta_{i,j}$}{The Kronecker's delta function}
+%
+% As we said in the preamble above, with the option NoTofC, the
+% section for the list of symbols isn't included in the table of
+% contents.  The default is that it is included in the table of
+% contents.
+%
+% If you don't want to have a list of symbols, comment out the
+% following two lines and don't run
+% makeindex template.nlo -s nomencl.ist -o template.nls
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\PrintNomenclature
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% For the following chapter, the pages will be numbered in roman
+% numbers as the previous pages.  The size of this chapter should be
+% very small.  If you have more then two pages, equations, and so on,
+% you should instead have a normal chapter. 
+%
+% Note that the numbering of equations in a chapter with no chapter
+% number will use the chapter number of the previous chapter.  This is
+% certainly not what you want.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\nonumchapter{Preface}
+
+%A really brief introduction to motivate your thesis.  Useful if you feel that the word limitation of the abstract didn't give you enough space to fully justify your thesis.  If you are going to have displayed equations with equation number, definitions, and so on, you should have a normal first chapter.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The command at the end of a chapter.  Don't remove
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% From now on, you can let your genius out.
+% Don't remove the next line
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagenumbering{arabic}
+
+%\include{intro}
+%\cleardoublepage
+
+%\include{discrete_dyn}
+%\cleardoublepage
+
+%\include{qualitative}
+%\cleardoublepage
+
+%\include{bifurcation}
+%\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OVERVIEW
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Introduction}
+
+\input{introduction}
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BACKGROUND
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\part{Background}
+\label{pt:background}
+
+% HOAS BACKGROUND
+
+%\input{background_hoas}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COQ BACKGROUND
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Coq}
+\label{ch:coq}
+
+\input{background_coq}
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HYBRID BACKGROUND
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Hybrid}
+\label{ch:hybrid}
+
+\input{hybrid}
+
+\cleardoublepage
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HEREDITARY HARROP BACKGROUND
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Hereditary Harrop Formulas}
+\label{ch:hh}
+
+\input{background_hh}
+
+\cleardoublepage
+
+
+
+\part{Contributions}
+
+%\notachapter{Notations}
+
+\allowdisplaybreaks[0]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Specification Logic
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Specification Logic}
+\label{ch:sl}
+
+\input{sl}
+
+\input{structind}
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proofs of Properties of SL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Specification Logic Metatheory}
+\label{ch:slind}
+
+%{
+
+
+\input{slind}
+%}
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Generalized Specification Logic
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Generalized Specification Logic}
+\label{ch:gsl}
+
+%{
+%\allowdisplaybreaks[0]
+
+\input{sl_generalized}
+%}
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proof By Induction over the Generalized Rules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Generalized Specification Logic Metatheory}
+\label{ch:gslind}
+
+%{
+%\allowdisplaybreaks[0]
+
+\input{gsl_ind}
+
+\input{structrules}
+
+\input{cutadmiss}
+%}
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusion (including related and future work)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Conclusion}
+\label{ch:concl}
+
+\input{conclusion}
+
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The End
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\topskip0pt
+
+\vspace*{\fill}
+
+\centering{\fontsize{50}{50}{\flobstertwo{The End.}}}
+
+\vspace*{\fill}
+
+\cleardoublepage
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If the following line of code is uncomment, then
+% the following chapters will be numbered A, B, ...
+% 
+% If there are no section in your appendix, your theorems, ..., and
+% equations will be numbered Theorem A.0.1, ...  To eliminate the
+% extra 0 in the numbering, you should modify the numbering as
+% follows.  Add
+%
+% \newtheorem{Atheo}{Theorem}[chapter]
+% \newtheorem{Alem}[Atheo]{Lemma}
+% \newtheorem{Adefn}[Atheo]{Definition}
+% \newtheorem{Acor}[Atheo]{Corollary}
+% \newtheorem{Aprop}[Atheo]{Proposition}
+%
+% after \documentclass[12pt]{UOthesis}
+%
+% and use
+%
+% \begin{Atheo}
+% This is a theorem.
+% \end{Atheo}
+%
+% \begin{Alem}
+% This is a emma.
+% \end{Alem}
+%
+% etc.
+%
+% in the appendix.
+%
+% You should also add
+%
+% \numberwithin{equation}{chapter}
+%
+% at the beginning of the appendix to get the right numbering for the
+% equations.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+
+\include{appendix_A}
+
+\chapter{Notations}
+\label{ch:notations}
+
+\begin{flushleft}
+Many symbols are used to denote values of different types. This allows us to impose some structure that is useful in understanding the work presented later, but is not actually built in to the system. We summarize the meta-variables used in the contributions chapters of this thesis. All symbols described here may also be seen with subscripts or the prime notation (i.e.$'$) when we need to talk about more than one term of a given type.
+\end{flushleft}
+
+$$
+\begin{tabular}{c c p{10cm}}
+Symbol & Type & Description \\ \hline
+$\alpha$ & \sltm{atm} & atom representing OL formula in pretty-printed inference rule notation for Coq statements \\
+$a$ & \sltm{atm} & atom representing OL formula in linear forms of Coq statements \\
+$A$ & \sltm{atm} & atom representing OL formula in SL inference rules \\ \hline
+$\beta$ & \sltm{oo} & SL formula in pretty-printed inference rule notation for Coq statements \\
+$o$ & \sltm{oo} & SL formula in linear form of Coq statements \\
+$G$ & \sltm{oo} & SL formula representing a goal in SL inference rules \\
+$D$ & \sltm{oo} & SL formula representing a clause in SL inference rules \\ \hline
+$\dyncon{}$ & \sltm{context} & context of assumptions in pretty-printed inference rule notation for Coq statements and SL inference rules \\
+$c$ & \sltm{context} & context of assumptions in linear form of theorem statements \\
+\end{tabular}
+$$
+
+\begin{flushleft}
+We collect here the following additional notations seen in this thesis:
+\end{flushleft}
+
+$$
+\begin{tabular}{l l c p{6cm}}
+Definition & Type & Notation & Notes \\ \hline
+$\sltm{atom} \; a$ & $\sltm{atm} \rightarrow \sltm{oo}$ & \atom{a} & coerces an atom to a formula \\
+$\sltm{Imp} \; o_1 \; o_2$ & $\sltm{oo} \rightarrow \sltm{oo} \rightarrow \sltm{oo}$ & $o_1 \longrightarrow o_2$ & implication in SL formula (right associative) \\
+$\sltm{Conj} \; o_1 \; o_2$ & $\sltm{oo} \rightarrow \sltm{oo} \rightarrow \sltm{oo}$ & $o_1 \& o_2$ & conjunction in SL formula \\
+$\sltm{prog} \; a \; o$ & $\sltm{atm} \rightarrow \sltm{oo} \rightarrow Prop$ & $\prog{a}{o}$ & parameter of SL representing OL inference rules \\
+\end{tabular}
+$$
+
+\cleardoublepage
+
+\include{appendix_B}
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% We provide two methods to introduce your bibliography.
+%
+% The hand made bibliography:
+% The basic method used the file biblio.tex.  It makes used of
+% the standard LaTeX environment \begin{thebibliography}{} and
+% \end{thebibliography}.
+%
+% The bibliography made with BibTeX:
+% The second method used the file biblio.bib.  It makes used of
+% BibTeX with the commands \bibliography{} and \bibliographystyle{}
+% \bibliographystyle{} is defined in the preamble.
+%
+% For examples on how to use the command  \cite[]{} in the text
+% to refer to items of the bibliography, look at the end of the
+% section on the "Logistic Equation" in the source file
+% qualitative.tex .  The results are dsiplayed at the end of
+% Section 2.1 after compilation.
+%
+% Instead of \cite[]{}, one can use \citet[]{}  and  \citep[]{}.
+% We have not illustrated how to use these commands but they are
+% used like \cite[]{}.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Hand made bibliography
+% \begin{BasicBibliography}
+% \input{biblio.tex}
+% \end{BasicBibliography}
+
+% Default style for BibTeX
+% The bibliography made with this command will include only references
+% in the bib file which are cited in the text.
+\bibTexBibliography{Thesis}
+
+% The bibliography made with this command will include all references
+% in the bib file even if they are not cited in the text.
+% \bibTexBibliography*{biblio}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Finally, we print the index
+%
+% To mark item "name_of_the_item" for inclusion in the index, you have
+% to insert the command \index{name_of_the_item} after you introduce
+% the item for the first time in the text.
+%
+% If the item is part of the group "name_of_the_group", you may use
+% the command \index{name_of_the_group!name_of_the_index}
+% The item will then appear under the group name.
+%
+% If you don't want to have an index, comment out the following line
+% and don't run makeindex template.idx .
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\PrintIndex
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+

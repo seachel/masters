@@ -1,0 +1,703 @@
+%The \coc{} has the strong normalization property, meaning all terms of \coc{} will be reduced to an irreducible form by any sequence of reductions. Other than the standard \beta-reduction we have \delta-reductions, which replace an identifier with its definition, and \iota-reductions, which handle computations in recursive programs.
+
+\index{Coq}
+Coq~\cite{coq,coqart} is an implementation of the Calculus of Inductive Constructions (\cic{})\index{calculus of inductive constructions}, an extension of the Calculus of Constructions (\coc{})~\cite{coc}\index{calculus of constructions}, a typed lambda calculus with dependent types, polymorphism, and type operators. \cic{} extends \coc{} by adding inductive types, which will be explored in Section~\ref{sec:coqinduction}. Originally created by Thierry Coquand, \coc{} and its extensions have spurred the development of a variety of proof assistants and interactive theorem proving systems currently used in the research areas of automated deduction and formal methods for software engineering.
+
+
+We will explore the Calculus of Constructions in Section~\ref{sec:coctype}, then see how it captures the simply typed $\lambda$-calculus in Section~\ref{sec:stlc}. Next we look at reductions in Section~\ref{sec:reductions}, followed by an exploration of the expressive power of \coc{} in Sections~\ref{sec:deptype} and~\ref{sec:hot}, where we will examine how the rules presented earlier in the chapter allow dependent types, polymorphism, and type operators.
+%We will also look at the various reductions in \cic{} to see how terms are evaluated and develop a notion of equivalence of terms, convertibility between types and a subtype relation.
+We see how to use Coq as an interactive proof assistant in Section~\ref{sec:coqpf} followed by information on inductive types and writing inductive proofs in Section~\ref{sec:coqinduction}.
+The notation and style used to illustrate the concepts follows the presentation in~\cite{coqart} and~\cite{coq}. The discussion is motivated by~\cite{coqart} and~\cite{coc}. %Specific examples drawn from other sources will be attributed where used.
+
+%The base sorts of CIC are \coqtm{Prop} and \coqtm{Set}. \coqtm{Prop} is the type of propositions. If $P :$ \coqtm{Prop}, then $P$ is considered a proposition. Any $p : P$ is considered a proof of $P$. The \coqtm{Prop} branch is used for proving (*elaborate). If $S :$ \coqtm{Set}, then $S$ is considered a function specification. So if $f : S$, then $f$ is a function satisfying specification $S$. Both \coqtm{Set} and \coqtm{Prop} have type $\coqtm{Type}_0$. For any $n \in \mathbb{N}$, $\coqtm{Type}_n$ has type $\coqtm{Type}_{n+1}$ (*more general?). \\
+
+
+%There are many inference rules of this system, but we will only look at a few important rules presently.
+
+%(*parametric product rule? see recursion theory project)
+
+%The research presented here is built mainly under the \coqtm{Prop} sort (*necessary to say here?). 
+
+\section{The Calculus of Constructions}
+\label{sec:coctype}
+
+%We distinguish two special types, \coqtm{Set} and \coqtm{Prop} with \coqtm{Set} : \type{0} and \coqtm{Prop} : \type{0}. This yields an infinite type hierarchy $s \leq \type{0} \leq ... \leq \type{j} \leq \type{j+1} ...$ with $s \in \{ \coqtm{Set} , \coqtm{Prop} \}$ and for all $i : \mathbb{N}$, $\type{i} : \type{i+1}$. $\coqtm{Set}$ and $\coqtm{Prop}$ are the lowest types in the hierarchy that we typically consider to be types of types, so we call them ``base sorts''. Terms of type \coqtm{Prop} are meant to be logical formulas. Terms of type \coqtm{Set} are meant to be data types. For example, we may construct a term $\N \rightarrow \N$, representing the type of functions from natural numbers to natural numbers, which has type $\coqtm{Set}$. We can define a term representing the successor function with type $\N \rightarrow \N$. So $\N \rightarrow \N$ is simultaneously thought of as a term and a type. Hence $\coqtm{Set}$ is a type of a type.
+
+\subsection{Terms}
+
+The terms of \coc{} are defined by the following grammar:
+
+\begin{align*}
+t_1, t_2, t_3 \; ::=& \; \mathit{Type}_i \\
+&| \; \mathit{Set} \\
+&| \; \mathit{Prop} \\
+&| \; x_i \\
+&| \; t_1 \; t_2 \\
+&| \; \lambda x : t_1 . t_2 \\
+&| \; \forall x : t_1 , t_2 \\
+&| \; \mathit{let} \; x := t_1 : t_2 \; \mathit{in} \; t_3 \\
+\end{align*}
+
+Terms of \coc{} include a collection of constants indexed by natural numbers where for $i \in \mathbb{N}$, $\mathit{Type}_i$ denotes the $i$th constant. Together with this collection, the constants $\mathit{Set}$ and $\mathit{Prop}$ are called \emph{sorts}, which can be viewed as types of types. In the grammar, $x_i$ for all $i \in \mathbb{N}$ denotes a countable collection of variables. Application is denoted by juxtaposition of terms. It is a binary operator that associates to the left (e.g. we write $(t_1 \; t_2) \; t_3$ as $t_1 \; t_2 \; t_3$). Terms can also be \lambda-abstractions $\lambda x : t_1 . t_2$, where $x$ is a variable that is considered \emph{bound} in $t_2$, and $t_1$ is considered the type of variable $x$. It is also possible for terms to be universal quantifications where $x$ is again a variable of type $t_1$ bound in $t_2$. If $x$ does not occur in $t_2$, then we can write this quantification as $t_1 \rightarrow t_2$. The final construction in the term grammar above is for terms denoting the definition of variable $x$ to be $t_1$ of type $t_2$ locally bound in $t_3$. We will sometimes use parentheses in the binders for abstractions and quantification, writing $\lambda (x  : t_1) . t_2$ and $\forall (x : t_1) , t_2$ to make it easier for the reader to parse these expressions.
+
+Rules assigning types to terms will be discussed below. In \coc{}, there is no syntactic difference between terms and types. We will use ``term'' and ``type'' interchangeably according to what is most reasonable for the current discussion.
+
+\coc{} can be used both as a theorem proving system and a functional programming language. Its type system allows for a correspondence to be observed between theorem statements and types, and between proofs and terms. This is called the Curry-Howard correspondence~\cite{Howard80} and allows us to view proofs as programs. By the Curry-Howard correspondence, the arrow notation can be understood simultaneously as implication or the function type arrow, depending on what is appropriate for the topic under consideration. It associates to the right, so we will usually write the type $t_1 \rightarrow (t_2 \rightarrow t_3)$ as $t_1 \rightarrow t_2 \rightarrow t_3$.
+
+In the rest of this chapter, we will write $t, T, u,$ or $U$ for terms and types, possibly with subscripts. We write $x$ for variables, also possibly with subscripts.
+
+%, the base sorts \coqtm{Set} and \coqtm{Prop}, and countable collections of variables and constants. They can also be applications of terms and abstractions over terms in the style of typed \lambda-calculus. Finally, terms can be universal quantification over terms. The last construction in the grammar has an alternative notation; for $x : t_1$, if the named variable $x$ does not occur in $t_2$, then we say $t_2$ does not depend on $x$ and we can write the term $\forall (x : t_1), t_2$ as $t_1 \rightarrow t_2$. By the Curry-Howard correspondence the arrow notation can be understood simultaneously as implication or the function type arrow, depending on what is appropriate for the topic under consideration. It associates to the right, so we will usually write the type $t_1 \rightarrow (t_2 \rightarrow t_3)$ as $t_1 \rightarrow t_2 \rightarrow t_3$.
+
+
+\subsection{Judgments}
+
+Once we are able to build terms of \coc{}, we want to reason about them, possibly within some context of assumptions.
+
+\begin{defnc}[Context]
+A \emph{context} in \coc{} is a list of \emph{variable declarations}, written $x : t$ to say variable $x$ has type $t$, and \emph{definitions}, written $x := t_1 : t_2$ to say variable $x$ has value $t_1$ of type $t_2$. The context may be written as $[d_1 ; d_2 ; \ldots]$ to list the elements. We write $[ \; ]$ for the empty context and $\dyncon{} :: (t_1 : t_2)$ for adding an element to the end of the list.
+\end{defnc}
+
+The description of contexts in \coc{} in~\cite{coq} includes a global environment, written $E$, along with the local context, written \dyncon{}. Both are lists of variable declarations and definitions. In the presentation here we do not need to distinguish between global and local assumptions, so we will have one context, usually written \dyncon{}.
+
+\begin{defnc}[Sequent, Judgment]
+A \emph{sequent} $\dyncon{} \vdash t : T$ is a \emph{judgment} where $\dyncon{}$ is the context and $t$ and $T$ are \coc{} terms. We call the elements of the context \emph{antecedents} (or \emph{assumptions} or \emph{hypotheses}) and $t : T$ is said to be a \emph{consequent}. We write $\vdash t : T$ as notation for $[ \, ] \vdash t : T$.
+\end{defnc}
+
+%The sequents used in this section are all typing judgments, so the consequent of our sequents will be type declarations.
+
+A sequent is notation representing a conditional assertion which may be true or false. We want to be able to determine when such assertions hold. For this, we need a set of inference rules to determine when a sequent is \emph{provable}. The rules of \coc{} are in Figure~\ref{fig:cicrules}.
+
+{
+\renewcommand{\arraystretch}{3.5}
+\newcommand{\cicrlaxprop}{\inferH[Ax-Prop]{\seq[\dyncon{}]{\mathit{Prop} : \mathit{Type}_0}}{}}
+\newcommand{\cicrlaxset}{\inferH[Ax-Set]{\seq[\dyncon{}]{\mathit{Set} : \mathit{Type}_0}}{}}
+\newcommand{\cicrlaxtype}{\inferH[Ax-Type]{\seq[\dyncon{}]{\mathit{Type}_i : \mathit{Type}_{i + 1}}}{}}
+\newcommand{\cicrlvar}{\inferH[Var]{\seq[\dyncon{}]{x : T}}{x : T \in \dyncon{} & (\mathrm{or} \; x := t : T \in \dyncon{} \; \mathrm{for \; some} \; t)}}
+\newcommand{\cicrlprodprop}{\inferH[Prod-Prop]{\seq[\dyncon{}]{\forall (x : T), U : \mathit{Prop}}}{\seq[\dyncon{}]{T : s} & s \in \{\mathit{Set} , \mathit{Prop}, \mathit{Type}_i\} & \seq[\dyncon{} :: (x : T)]{U : \mathit{Prop}}}}
+\newcommand{\cicrlprodset}{\inferH[Prod-Set]{\seq[\dyncon{}]{\forall (x : T), U : \mathit{Set}}}{\seq[\dyncon{}]{T : s} & s \in \{ \mathit{Set} , \mathit{Prop} \} & \seq[\dyncon{} :: (x : T)]{U : \mathit{Set}}}}
+\newcommand{\cicrlprodtype}{\inferH[Prod-Type]{\seq[\dyncon{}]{\forall (x : T), U : \mathit{Type}_k}}{\seq[\dyncon{}]{T : \mathit{Type}_i} & i \leq k & \seq[\dyncon{} :: (x : T)]{U : \mathit{Type}_j} & j \leq k}}
+\newcommand{\cicrllam}{\inferH[Lam]{\seq[\dyncon{}]{\lambda (x : T) . t : \forall (x : T), U}}{\seq[\dyncon{}]{\forall (x : T), U : s} & \seq[\dyncon{} :: (x : T)]{t : U}}}
+\newcommand{\cicrlapp}{\inferH[App]{\seq[\dyncon{}]{(t \; u) : T \{ x / u \}}}{\seq[\dyncon{}]{t : \forall (x : U), T} & \seq[\dyncon{}]{u : U}}}
+\newcommand{\cicrllet}{\inferH[Let]{\seq[\dyncon{}]{\mathit{let} \; x := t : T \; \mathit{in} \; u : U\{x / t\}}}{\seq[\dyncon{}]{t : T} & \seq[\dyncon{} :: (x := t : T)]{u : U}}}
+\newcommand{\cicrlconv}{\inferH[Conv]{\seq{t : U}}{\seq{U : s} & s \in \{ \mathit{Set} , \mathit{Prop} , \mathit{Type}_i \} & \seq{t : T} & \seq{T \subtype{} U}}}
+
+\begin{figure}
+$$
+\begin{tabular}{c c}
+\cicrlaxprop{}
+&
+\cicrlaxset{} \\
+%
+\cicrlaxtype{}
+&
+\cicrlvar{} \\
+%
+\multicolumn{2}{c}{
+\cicrllam{}
+} \\
+\multicolumn{2}{c}{
+\cicrlapp{}
+} \\
+\multicolumn{2}{c}{
+\cicrllet{}
+} \\
+\multicolumn{2}{c}{
+\cicrlprodprop{}
+} \\
+\multicolumn{2}{c}{
+\cicrlprodset{}
+} \\
+\multicolumn{2}{c}{
+\cicrlprodtype{}
+} \\
+\multicolumn{2}{c}{
+\cicrlconv{}
+}
+\end{tabular}
+$$
+\caption{Rules of \coc{} \label{fig:cicrules}}
+\end{figure}
+}
+
+\begin{defnc}[Derivation, Valid/Provable Sequent]
+\label{def:derivvalid}
+A tree built using the rules of Figure~\ref{fig:cicrules} with \seq{t : T} at the root and \rl{Ax-Prop}, \rl{Ax-Set}, \rl{Ax-Type}, or \rl{Var} at the leaves is a \emph{derivation} of \seq{t : T}. If there is a derivation of \seq{t : T}, we say this sequent is \emph{valid} or \emph{provable}. We also say that $t$ has type $T$ in $\dyncon{}$ or just $t$ has type $T$ when $\dyncon{}$ is empty.
+\index{derivation}
+\index{valid sequent}
+\index{provable sequent}
+\end{defnc}
+
+For terms $t$ and $T$ and variable $x$, the notation $T\{x / t\}$ denotes \emph{substitution}\index{substitution}, meaning the operation that replaces occurrences of $x$ in $T$ with $t$, with the usual renaming of bound variables to avoid instances of free variables becoming bound. The rules \rl{Ax-Prop}, \rl{Ax-Set}, and \rl{Ax-Type} are axioms that build the hierarchy of the sorts into the logic. The \rl{Var} rule allows a branch of a derivation to be completed by showing the consequent of a sequent to be present in the context. Here we have omitted a premise requiring that the context is well-formed and the rules for building well-formed contexts (see~\cite{coq} for details); informally, we understand this to mean that additions to the context are well-typed according to the rules of Figure~\ref{fig:cicrules}. The \rl{Lam} and \rl{App} rules are the standard rules for building terms of the typed \lambda-calculus.
+
+\begin{defnc}[Dependent Product]
+\label{def:depprod}
+A term of the form $\forall t : T, U$ is called a \emph{dependent product}.
+\index{dependent product}
+\end{defnc}
+
+Notice the \rl{Prod} rules are all for building dependent products. The notation $t_1 \subtype{} t_2$ in rule \rl{Conv} is to say $t_1$ is a subtype of $t_2$ and will be described in Section~\ref{sec:reductions} when discussing convertibility. The various \rl{Prod} rules, together with the \rl{Conv} rule, are what allow \coc{} to have such an expressive type system; they allow simple types, dependent types, polymorphism, and higher-order types as we will see in the coming sections.
+
+%Consider the following product type construction rule from \coc{}:
+
+%$$
+%\infer[\rl{Prod(s, $s'$, $s''$)}]{\seq{\forall (t : T), U : s''}}{\seq{T : s} & \seq[\Gamma :: (t : T)]{U : s'}}
+%$$
+
+%\bigskip
+
+%The possible tuples $(s, s', s'')$ that we allow can give us simple types, dependent types, and higher-order types and cause \cic{} to have a very expressive type system. For example, if we require $s$ is $\mathit{Set}$ and $s'$ is $\mathit{Prop}$, then the rule $\rl{Prod(s,$s'$,$s'$)}$ is a rule to build propositions with universal quantification:
+
+%$$
+%\infer[\rl{Prod($\mathit{Set}$, $\mathit{Prop}$, $\mathit{Prop}$)}]{\seq{\forall t : T, U : \mathit{Prop}}}{\seq{T : \mathit{Set}} & \seq[\Gamma :: (t : T)]{U : \mathit{Prop}}}
+%$$
+
+\begin{defnc}[Inhabited-in-Context]
+\label{def:inhabited}
+Let $\dyncon{}$ be a context and $T$ a type. We say that $T$ is \emph{inhabited in context} $\dyncon{}$ if there exists $t$ such that \seq{t : T} is provable.
+\index{inhabited}
+\end{defnc}
+
+%\coc{} may be used as a functional programming language and for verifying the correctness of programs written in this language. The rich type system allows one to write far more specific types for functions than is allowed in more common programming languages (and any without dependent types).
+
+The type system of \coc{} allows for two different approaches to be taken when using the language; it can be used as a functional programming language or for formalized reasoning via the two sorts $\mathit{Set}$ and $\mathit{Prop}$, respectively.
+
+\begin{defnc}[Specification, Realization]
+\label{def:spec}
+If $\Gamma \vdash T : \mathit{Set}$ is provable, then $T$ is a \emph{specification}. If $\Gamma \vdash t : T$ is provable, then $t$ is a \emph{realization} of the specification $T$.
+\end{defnc}
+
+We can think of a specification as the type of a function and a realization as its implementation. For example, the identity function on natural numbers has specification $\mathbb{N} \rightarrow \mathbb{N}$ and a realization of this specification is the function $\lambda (x : \mathbb{N}) \, . \, x$. Note that we have not yet defined $\mathbb{N}$ in \coc{} (see below).
+
+\begin{defnc}[Formula, Proof Object]
+\label{def:thmpf}
+If $\Gamma \vdash T : \mathit{Prop}$ is provable, then $T$ is a \emph{formula}. If $\Gamma \vdash t : T$ is provable, then $T$ is a \emph{theorem} and $t$ is a \emph{proof object} representing a proof of theorem $T$.
+\end{defnc}
+
+In the next few sections, as we explore the expressive power of the \coc{} type system, we will encounter some examples that make use of the type $\mathbb{N}$ of natural numbers. This type is inductive and cannot be properly defined until Section~\ref{sec:coqinduction}, but it is useful in illustrating earlier concepts. For this reason an informal definition of this type is given here as well as some (later justified) results about it.
+
+The type $\mathbb{N}$ is an inductive type whose ``elements'' are constructed from the following rules:
+\begin{itemize}
+ \item the number 0 has type $\mathbb{N}$
+ \item if $n$ has type $\mathbb{N}$, than the successor of $n$ (written $\mathit{S} \; n$) has type $\mathbb{N}$
+\end{itemize}
+In addition, in the examples here we make use of the fact that for any context \dyncon{}, the sequent \seq{\mathbb{N} : \mathit{Set}} is provable.
+
+\section{Simply Typed Lambda Calculus}
+\label{sec:stlc}
+
+\index{simply typed \lambda-calculus}
+
+From the rules of Figure~\ref{fig:cicrules}, we can see that \coc{} encompasses the simply-typed \lambda-calculus. These rules allow the construction of simple types. This includes atomic types, referred to by their identifier (e.g. \N, \Z), and arrow types $A \rightarrow B$ where $A$ and $B$ are simple types and $\rightarrow$ associates to the right. Observe that by the Curry-Howard correspondence we may view $A \rightarrow B$ as either a specification (function type) or a theorem (implication), depending on the sort of the arrow type. In either case, if $t : A \rightarrow B$, then $t$ maps either data of type $A$, or proofs of $A$, to data of type $B$, or proofs of $B$, respectively.
+
+Abstractions and applications for simple types are build using the rules \rl{Lam} and \rl{App} of Figure~\ref{fig:cicrules}, where the bound variable in any universal quantification does not occur in its body. The rule \rl{Lam} makes it possible to construct a term of type $A \rightarrow B$, but we also need to be able to build this type. This is accomplished via the product rule for simple types:
+
+$$
+\infer[\rl{Prod-ST}]{\seq{A \rightarrow B} : s}{\seq{A : s} & \seq{B : s}} 
+$$
+where $s \in \{ \mathit{Set}, \mathit{Prop} \}$.
+
+Notice the rule \rl{Prod-ST} is an instance of rule \rl{Prod-Set} with $s = \mathit{Set}$ or \rl{Prod-Prop} with $s = \mathit{Prop}$. Again note that $A \rightarrow B$ is shorthand for $\forall (x : A), B$ (given $x$ does not occur in $B$).
+
+
+\section{Reductions}
+\label{sec:reductions}
+
+The calculus of constructions has the strong normalization property so all terms of \coc{} will be reduced to an irreducible form by any sequence of reductions. We use the notation $t \reduce{} s$ to say that a term $t$ evaluates to a term $s$ by some sequence of $\delta$-, $\beta$-, $\iota$-, and $\zeta$-reductions (described below).
+
+\paragraph{$\delta$-Reduction} replaces an identifier with its definition. For example, if we have defined $f := \lambda (x : \mathit{Type}_0) \, . \, x : \mathit{Type}_0 \rightarrow \mathit{Type}_0$, then $f \; \mathit{Set} \triangleright_{\delta} \mathit{Set}$.
+
+\paragraph{$\beta$-Reduction} evaluates a term acquired by the \rl{App} rule by replacing all occurrences of the bound variable in the body of the abstraction with the term the abstraction is applied to using standard substitution rules; defined as $(\lambda (x : T) \, . \, t) \; u \triangleright_\beta t \{ x / u \}$.
+
+\paragraph{$\iota$-Reduction} handles computations in recursive programs; it will not be used in the examples presented.
+
+\paragraph{$\zeta$-Reduction} deals with converting local bindings; it will not be used in the examples presented.
+
+\subsection{Convertibility}
+
+We say two terms $t_1$ and $t_2$ are $\alpha$-equivalent, written $t_1 \cong_\alpha t_2$, if they are the same term up to renaming of bound variables.
+
+\begin{defnc}[$\beta\delta\iota\zeta$-Convertible]
+\label{def:convequiv}
+Two terms are considered equivalent, or \emph{$\beta\delta\iota\zeta$-convertible}, if they can be reduced to $\alpha$-equivalent terms by the reductions given above. When terms $t_1$ and $t_2$ are $\beta\delta\iota\zeta$-convertible, we write $t_1 =_{\beta\delta\iota\zeta} t_2$.
+\end{defnc}
+
+Symbolically, definition~\ref{def:convequiv} says for terms $t_1, t_2, u_1,$ and $u_2$, if $t_1 \reduce{} u_1$ and $t_2 \reduce{} u_2$ and $u_1 \cong_\alpha u_2$, then $t_1 =_{\beta\delta\iota\zeta} t_2$.
+
+From convertibility we can develop the notion of \emph{subtyping} in \coc; $\subtype{}$ is a preorder on the collection of types in the type hierarchy. This relation is defined inductively in Figure~\ref{fig:conv}. This gives us a conversion rule for terms, the rule \rl{Conv} of Figure~\ref{fig:cicrules}.
+
+\begin{figure}
+\begin{enumerate}
+ \item if \seq{t =_{\beta\delta\iota\zeta} u} then \seq{t \subtype{} u}
+ \item for all $i, j \in \mathbb{N}$, if $i \leq j$ then \seq{\mathit{Type}_i \subtype{} \mathit{Type}_j}
+ \item for all $i \in \mathbb{N}$, \seq{\mathit{Set} \subtype{} \mathit{Type}_i}
+ \item \seq{\mathit{Prop} \subtype{} \mathit{Set}} and for all $i \in \mathbb{N}$, \seq{\mathit{Prop} \subtype{} \mathit{Type}_i}
+ \item if \seq{T =_{\beta\delta\iota\zeta} U} and \seq[\Gamma :: (x : T)]{T' \subtype{} U'} then \seq{\forall x : T, T' \subtype{} \forall x : U, U'}
+\end{enumerate}
+\caption{Subtyping in \coc{} \label{fig:conv}}
+\end{figure}
+
+
+
+\section{Dependent Types}
+\label{sec:deptype}
+
+\index{dependent type}
+
+A dependent type is the result of applying a function to appropriate expressions; in particular, it is the reduced form of a function applied to an argument of type $\mathit{Set}$ or $\mathit{Prop}$. By definitions~\ref{def:spec} and~\ref{def:thmpf}, a dependent type is a term of \coc{} that depends on a choice of a \emph{realization} of a specification (for parametric types) or a choice of \emph{proof object} (in the logical case).
+
+\begin{expl}[Tuple as a Dependent Type]
+Let $n$ be a term of type $\mathbb{N}$. By definition~\ref{def:spec}, $n$ is a \emph{realization} of the \emph{specification} $\mathbb{N}$. The type of tuples of size $n$, call this $\mathit{tuple}$, depends on the value of $n$ and has type $\mathbb{N} \rightarrow \mathit{Set}$. $\mathit{tuple} \; 1$ is a dependent type of one-tuples. 
+\end{expl}
+
+%\begin{expl}
+%The characteristic function $\chi_S$ has type $S \rightarrow \mathit{Prop}$. If $S$ has type $\mathit{Set}$ and, then $\chi_S \; S$ is a dependent type because it depends on the set $S$.
+%\end{expl}
+
+Note that the type of a dependent type is a dependent product (see definition~\ref{def:depprod}). We need to be able to build the dependent products that will allow us to define the above example. We can use a derived rule, which we will call \rl{Prod-Dep}, for building dependent products that can then be used to build dependent types. Let $s \in \{ \mathit{Set} , \mathit{Prop} \}$. This rule is:
+$$
+\infer[\rl{Prod-Dep}]{\seq{\forall (x : T), U : \mathit{Type}_i}}{\seq{T : s} & \seq[\dyncon{} :: (x : T)]{U : \mathit{Type}_i}}
+$$
+We get this rule from the following derivation tree:
+{\scriptsize
+$$
+\infer[\rl{Prod-Type}]{\seq{\forall (x : T), U : \mathit{Type}_i}}{
+  \infer[\rl{Conv}]{\seq{T : \mathit{Type}_0}}{\infer[\rl{Ax-Type}]{\seq{\mathit{Type_0} : \mathit{Type}_1}}{} & \seq{T : s} & \infer[\rl{*}]{\seq{s \subtype{} \mathit{Type}_0}}{}}
+  &
+  \seq[\dyncon{} :: (x : T)]{U : \mathit{Type}_i}}
+$$
+}
+The leaf labeled with \rl{*} is proven by clauses $3$ and $4$ in the definition of the subtype relation in Figure~\ref{fig:conv}.
+
+Using \rl{Prod-Dep} it is possible to build a term $\forall (x : T), U$ of type $\mathit{Type}_i$, where $x$ may occur freely in $U$ and, most importantly for the contents of this section, $T : s$ where $s \in \{ \mathit{Set}, \mathit{Prop} \}$.% If $x$ is not a free variable of $U$, then $\forall (x : T), U$ is a non-dependent type abbreviated as $T \rightarrow U$ (since for any $t$ of type $T$, $U \equiv U\{x/t\}$).
+
+\begin{expl}[Parametrized Types]
+
+If $s$ is $\mathit{Set}$ and $U$ is $\mathit{Set}$, then the rule \rl{Prod-Dep} can be used to construct the type of parametrized types. Consider the first example above, the type of tuples of size $n$, where $n$ is either a variable in the context or a concrete value. We will define the name of this type to be $\mathit{tuple}$. Then the type of $\mathit{tuple}$ is $\mathbb{N} \rightarrow \mathit{Set}$ and the dependent type is an instantiation of this type with some value $n$ of type $\mathbb{N}$. The sequent \seq{\mathbb{N} \rightarrow \mathit{Set} : \mathit{Type}_i} is proven with \rl{Prod-Type}.
+
+\end{expl}
+
+\begin{expl}[Predicates]
+
+Let $s$ be $\mathit{Set}$ and be $U$ be $\mathit{Prop}$. Then the rule \rl{Prod-Dep} can be used to build the type of unary predicates $T \rightarrow \mathit{Prop}$ where (from the rule) we also know that $T$ has type $\mathit{Set}$. We can extend this to $n$-ary predicates by repeated uses of the rule.
+
+\end{expl}
+
+\section{Higher-Order Types}
+\label{sec:hot}
+
+For all $i \in \mathbb{N}$, types $T$ with type $\mathit{Type}_i$ are considered here to be higher-order types since elements $t$ of type $T$ are types. For example, $\mathbb{N}$ has type $\mathit{Set}$, which has type $\mathit{Type}_0$. Traditionally we can think of $\mathbb{N}$ as a type and elements that inhabit it as values of that type. Dependent products with quantification over higher-order types are built with the rule \rl{Prod-Type} of Figure~\ref{fig:cicrules}. In this section we will see how polymorphism and type operators are permitted in Coq using the \rl{Prod-Type} rule and higher-order types.
+
+\subsection{Polymorphism}
+\label{subsec:polymorphism}
+
+\index{polymorphism}
+
+Informally, a polymorphic function is a function with a type parameter. Working toward an example of such a function, consider a unary function $\mathit{double}$ on natural numbers that returns the argument multiplied by two. Note that we do not define this function here as this requires concepts explained later, and the focus of this discussion is on the type of such a function. $\mathit{double}$ has type $\mathbb{N} \rightarrow \mathbb{N}$. In fact, all unary functions on natural numbers can be specified with type $\mathbb{N} \rightarrow \mathbb{N}$. Then a function that iterates such unary functions on $\mathbb{N}$, call this $\mathit{iter\_nat}$, will have type $(\mathbb{N} \rightarrow \mathbb{N}) \rightarrow \underline{\mathbb{N}} \rightarrow \mathbb{N} \rightarrow \mathbb{N}$, where the first argument is the function to iterate and the second argument (which is underlined) is the number of times to iterate the function argument. The definition of $\mathit{iter\_nat}$ does not make use of the fact that the unary functions are over $\mathbb{N}$ because it simply repeatedly applies the function the number of times specified by the second (underlined) argument. So the logic of $\mathit{nat\_iter}$ should be reusable to iterate unary functions over any type $t$ of type $\mathit{Set}$. We want to define a function, say $\mathit{iter}$, that will accomplish this. $\mathit{iter}$ will have type $\forall (t : \mathit{Set}), (t \rightarrow t) \rightarrow \mathbb{N} \rightarrow t \rightarrow t$. We can show that this is a valid type in \coc{}.
+
+%Perhaps a function is needed to iteratively apply unary functions on the type \coqtm{bool} (this type has values \coqtm{true} and \coqtm{false}).
+
+Let $T$ be $\mathit{Set}$, then we can use the \rl{Prod-Type} rule with $i=j=k=0$ to build specifications of polymorphic functions: \\
+
+$$
+\infer[\rl{Prod-Type}]{\seq{\forall (t : \mathit{Set}), U : \mathit{Type}_0}}{\seq{\mathit{Set} : \mathit{Type}_0} & \seq[\Gamma :: (t : \mathit{Set})]{U : \mathit{Type}_0}}
+$$
+
+\bigskip
+
+Using this rule, we prove below that $\forall t : \mathit{Set}, (t \rightarrow t) \rightarrow \N{} \rightarrow t \rightarrow t$ has type $\mathit{Type}_0$ in \coc{}. In the course of this proof we will also show that $t : \mathit{Set} \vdash (t \rightarrow t) \rightarrow \N{} \rightarrow t \rightarrow t : \mathit{Set}$ is a valid sequent. By the terminology of definition~\ref{def:spec}, this means we can \emph{specify} a function for the $n$-th iterate of a unary function on some type $t$ with sort $\mathit{Set}$, where $n$ is the natural number argument to the function $\mathit{iter}$.
+
+\paragraph{Claim:} $\vdash \forall t : \mathit{Set}, (t \rightarrow t) \rightarrow \N{} \rightarrow t \rightarrow t : \mathit{Type}_0$ is provable.
+% See the next page for a proof of this sequent. Note: weakening has been used without being marked to remove unnecessary elements of the context where possible and reduce the size of the proof. This specification is stated in~\cite{coqart} with identifier \texttt{iterate} (without its construction). \\
+
+\begin{proof}
+
+%To show that we can build specifications of functions iterating unary functions over some type $t : \mathit{Set}$, we need to show that $t : \mathit{Set} \vdash (t \rightarrow t) \rightarrow \N{} \rightarrow t \rightarrow t : \mathit{Type}_0$ is derivable.
+
+This proof will be presented from axioms and work towards the goal where most steps use some version of a \rl{Prod} rule. We show the sequent in the above paragraph holds as justification that we can construct the type of specifications of polymorphic functions. To finish the proof and show the claim above we will need to use the \rl{Conv} rule toward the end, since we are building a term of type $\mathit{Type}_0$.
+
+For any $\dyncon{}$ with $t : \mathit{Set} \in \dyncon{}$, the \rl{Var} rule is used to show that the sequent $\dyncon{} \vdash t : \mathit{Set}$ is provable. So the following sequents are valid:
+
+\begin{align}
+[t : \mathit{Set}] &\vdash t : \mathit{Set} \label{eqn:seq1} \\
+[t : \mathit{Set} ; t : \mathit{Set}] &\vdash t : \mathit{Set} \label{eqn:seq2} \\
+[t : \mathit{Set} ; H_1 : t \rightarrow t ; H_2 : \mathbb{N}] &\vdash t : \mathit{Set} \label{eqn:seq3} \\
+[t : \mathit{Set} ; H_1 : t \rightarrow t ; H_2 : \mathbb{N} ; t : \mathit{Set}] &\vdash t : \mathit{Set} \label{eqn:seq4}
+\end{align}
+By \eqref{eqn:seq1} and \eqref{eqn:seq2} above and the rule \rl{Prod-Set}, we derive the sequent
+\begin{align}
+[t: \mathit{Set}] \vdash (t \rightarrow t) : \mathit{Set}. \label{eqn:seq5}
+\end{align}
+The type $\mathbb{N}$ is defined to have type $\mathit{Set}$, so
+\begin{align}
+[t : \mathit{Set} ; H_1 : t \rightarrow t] \vdash \mathbb{N} : \mathit{Set} \label{eqn:seq6}
+\end{align}
+is also valid.
+By \eqref{eqn:seq3} and \eqref{eqn:seq4} above and the rule \rl{Prod-Set}, we derive the sequent
+\begin{align}
+[t : \mathit{Set} ; H_1 : t \rightarrow t ; H_2 : \mathbb{N}] \vdash t \rightarrow t : \mathit{Set} \label{eqn:seq7}.
+\end{align}
+So we can use the \rl{Prod-Set} rule with \eqref{eqn:seq6} and \eqref{eqn:seq7} to show that
+\begin{align}
+[t : \mathit{Set} ; H_1 : t \rightarrow t] \vdash \mathbb{N} \rightarrow t \rightarrow t : \mathit{Set} \label{eqn:seq8}
+\end{align}
+is provable.
+Now \rl{Prod-Set} applied to \eqref{eqn:seq5} and \eqref{eqn:seq8} gives us
+\begin{align}
+[t : \mathit{Set}] \vdash (t \rightarrow t) \rightarrow \mathbb{N} \rightarrow t \rightarrow t : \mathit{Set}. \label{eqn:seq9}
+\end{align}
+We have shown in \eqref{eqn:seq9} that we can construct the specification of a polymorphic function for iterating unary functions of type $t : \mathit{Set}$.
+Continuing the proof, the sequent
+\begin{align}
+[t : \mathit{Set}] \vdash \mathit{Type}_0 : \mathit{Type}_1 \label{eqn:seq10}
+\end{align}
+is valid by \rl{Ax-Type}. By the definition of $\subtype{}$, the sequent
+\begin{align}
+[t : \mathit{Set}] \vdash \mathit{Set} \subtype{} \mathit{Type}_0 \label{eqn:seq11}
+\end{align}
+is also valid.
+Applying \rl{Conv} to \eqref{eqn:seq10}, \eqref{eqn:seq9}, and \eqref{eqn:seq11} gives
+\begin{align}
+[t : \mathit{Set}] \vdash (t \rightarrow t) \rightarrow \mathbb{N} \rightarrow t \rightarrow t : \mathit{Type}_0. \label{eqn:seq12}
+\end{align}
+By the axiom \rl{Ax-Set}, the sequent
+\begin{align}
+\vdash \mathit{Set} : \mathit{Type}_0 \label{eqn:seq13}
+\end{align}
+is valid.
+Finally, we use the rule \rl{Prod-Type} a final time with \eqref{eqn:seq13} and \eqref{eqn:seq12} to show that
+\begin{align}
+\vdash \forall (t : \mathit{Set}), (t \rightarrow t) \rightarrow \mathbb{N} \rightarrow t \rightarrow t : \mathit{Type}_0
+\end{align}
+is derivable, as claimed.
+
+\end{proof}
+
+\subsection{Type Operators}
+\label{subsec:tpop}
+
+\index{type operator}
+Informally, a \emph{type operator} is a type built from other types. The \rl{Prod-Type} rule is what also allows us to express type operators in \coc{} because its conclusion is a typing judgment for a dependent product with quantification over higher-order types.
+
+\begin{expl}[Logical Connectives]
+
+Let $T$ be $\mathit{Prop}$ and $i=j=k=0$, then we have a rule to build the type of logical connectives.
+
+$$
+\infer[\rl{Prod-Type}]{\seq{\forall t : \mathit{Prop}, U : \mathit{Type}_0}}{\seq{\mathit{Prop} : \mathit{Type}_0} & \seq[\Gamma :: (t : \mathit{Prop})]{U : \mathit{Type}_0}}
+$$
+
+The infix binary connectives representing ``or'' and ``and'' can be declared as $\vee : \mathit{Prop} \rightarrow \mathit{Prop} \rightarrow \mathit{Prop}$ and $\wedge : \mathit{Prop} \rightarrow \mathit{Prop} \rightarrow \mathit{Prop}$, respectively.
+%This expands what can be expressed with dependent products and allows formulas corresponding to natural deduction rules using these types.
+Note that we can only \emph{declare} these types at this time, meaning we see here how to construct the types of these operators. This is necessary before we see how to define (and derive the type of) definitions. Inductive types will be discussed in Section~\ref{sec:coqinduction}.
+
+\paragraph{Claim:} \seq[]{\mathit{Prop} \rightarrow \mathit{Prop} \rightarrow \mathit{Prop} : \mathit{Type}_0} is provable.
+
+\begin{proof}
+
+This proof is illustrated by the derivation tree below. First, we rewrite the consequent of the sequent in the form that more easily visually matches the conclusion of the \rl{Prod-Type} rule. Recall that the arrow notation $A \rightarrow B$ is a simplified notation for $\forall (x : A), B$. So we can rewrite $\mathit{Prop} \rightarrow \mathit{Prop} \rightarrow \mathit{Prop}$ as $\forall (t_1 : \mathit{Prop}), \forall (t_2 : \mathit{Prop}), Prop$.
+
+$$
+{\footnotesize
+\infer[\rl{Prod-Type}]{\seq[]{\forall (t_1 : \mathit{Prop}), \forall (t_2 : \mathit{Prop}), \mathit{Prop} : \mathit{Type}_0}}{
+    \infer[\rl{*}]{\seq[]{\mathit{Prop} : \mathit{Type}_0}}{}
+    &
+    \infer[\rl{Prod-Type}]{\seq[{[t_1 : \mathit{Prop}]}]{\forall (t_2 : \mathit{Prop}), \mathit{Prop} : \mathit{Type}_0}}{
+      \infer[\rl{*}]{\seq[{[t_1 : \mathit{Prop}]}]{\mathit{Prop} : \mathit{Type}_0}}{}
+      &
+      \infer[\rl{*}]{\seq[{[t_1 : \mathit{Prop} ; t_2 : \mathit{Prop}]}]{\mathit{Prop} : \mathit{Type}_0}}{}
+    }
+}
+}
+$$
+
+All three leaves are marked with \rl{*} and proven by clause $4$ in the definition of the subtype relation in Figure~\ref{fig:conv}.
+
+\end{proof}
+
+\end{expl}
+
+
+\section{Interactive Proving in Coq}
+\label{sec:coqpf}
+
+For the remainder of this chapter we are considering the Coq implementation of \cic{} and use of this system. Now when we talk about built-in language types, tactics, commands, or define types in the Coq syntax, we will use \texttt{teletype} font rather than \textit{italicized} math font.
+
+As described in Section~\ref{sec:coctype}, to prove a statement $P$ where \seq{P : \coqtm{Prop}} is provable, we construct (or find) a proof object $t$ through a derivation of \seq{t : P} (i.e. according to definition~\ref{def:inhabited}, show that $P$ is inhabited by $t$ in \dyncon{}). By definition~\ref{def:thmpf}, proof object $t$ represents a proof of theorem $P$. As an alternative to ``defining'' the proof object $t$ and allowing the type checker to verify that $t$ is a proof term for $P$, Coq provides an interactive proof mode where \emph{tactics}\index{tactic} are used to interactively build $t$. These proofs start with the theorem statement $P$ as the goal and work backward reducing the goal to subgoals at each step and eventually to axioms. Once all goals have been discharged, the system builds the proof term $t$. The names of some of these tactics will be mentioned throughout this document, so we collect descriptions of the relevant tactics at the end of this section.
+
+\subsection{Proof State}
+\label{subsec:pfstate}
+The interactive proof engine of Coq can be used to build a derivation in \coc{} in a bottom-up fashion, meaning we construct the proof tree for a sequent \seq{t : P} beginning at the root. In fact, we are constructing both the proof tree and $t$, showing that $P$ is inhabited.
+
+\begin{defnc}[Proof State]
+Let \dyncon{} be the context $[ H_1 : P_1 ; \ldots ; H_k : P_k]$ and let $P$ be a formula that we want to show is inhabited in \dyncon{} by a proof object. The pair $(\dyncon{} , P)$ is a \emph{proof state}. We call $P$ a \emph{goal}. We say that a proof state $(\dyncon{}, P)$ is \emph{complete} when there exists a $t$ such that $t : P \in \dyncon{}$ or $P \reduce{} \top$. A proof state that is not complete is \emph{incomplete}.
+\end{defnc}
+
+Visually we will write a proof state in a vertical form with the assumptions in the context above a horizontal line and the goal below. For example:
+
+\begin{align*}
+H_1 &: P_1 \\
+&\large{\vdots} \\
+H_k &: P_k \\[\pfshift{}]
+\cline{1-2}
+& P
+\end{align*}
+%where $H_1$, \dots{} , $H_k$ are variables names with types $P_1$, \dots{} , $P_k$, respectively. The goal $P$ is a formula.
+
+%When working through a derivation, the proof state is changing. It is possible to have multiple incomplete proof states at one time. These correspond to the sequents at the leaves of an incomplete proof tree. 
+
+Unlike in Coq, when we have multiple incomplete proof states corresponding to leaves in a partial derivation and goals $G_1, \ldots , G_j$ have the same context of assumptions, we will write them all below the horizontal line, separated by commas.
+\begin{align*}
+H_1 &: P_1 \\
+&\large{\vdots} \\
+H_k &: P_k \\[\pfshift{}]
+\cline{1-2}
+& G_1 , \ldots , G_j
+\end{align*}
+
+We also sometimes refer to the goal as a subgoal\index{subgoal} as a reminder that it was acquired from a previous goal and there may be other subgoals.
+
+
+\begin{expl}[Interactive Proof]
+\label{ex:interactivepf}
+
+To illustrate the Coq interactive theorem proving system, we will prove the conjunction elimination rule $\vcenter{\inferH[\wedge_{e_1}]{P}{P \wedge Q}}$. Note that in Coq, conjunction is defined as an inductive type. Since we look at inductive types and inductive reasoning in Coq in Section~\ref{sec:coqinduction} and we do not have to use any inductive reasoning in this proof, we elide the details of inductive type definitions here. The single rule for constructing conjunctions is
+$$
+\forall (P \; Q : \coqtm{Prop}), P \rightarrow Q \rightarrow P \wedge Q
+$$
+which says for all propositions $P$ and $Q$, if we have a proof of $P$ (i.e. a term of type $P$) and if we have a proof of $Q$ (i.e. a term of type $Q$), then we have a proof of $P \wedge Q$.
+
+\paragraph{Claim:} $\vdash \forall (P \; Q : \coqtm{Prop}), P \wedge Q \rightarrow P$ \\
+
+\begin{proof}
+We begin this proof at the root of the proof tree. Initially the context of assumptions is empty.
+\begin{align*}
+\cline{1-2}
+& \forall (P \; Q : \coqtm{Prop}), P \wedge Q \rightarrow P
+\end{align*}
+We use the \coqtm{intros} tactic, which applies the \rl{Lam} rule of Figure~\ref{fig:cicrules} in a backward direction as many times as possible, effectively moving the quantified variable declarations (including anything to the left of $\rightarrow$) in the goal to the context of assumptions of the proof state. Recall that a goal corresponds to the type on the right of a colon in the consequent of a \coc{} sequent. The \coqtm{intros} tactic automatically solves the left premise of each application of the \rl{Lam} rule (it involves only simple type checking), and presents the type on the right of the colon in the consequent of the last right premise as the new subgoal. At each step of a proof in Coq, the terms on the left of the colon are constructed internally and not displayed. Once a proof is completed, these terms are used to build the proof object for the theorem we started with, which can then be displayed at the user's request. Each application of the \rl{Lam} rule in a backward direction introduces a new hypothesis into the context of assumptions of the proof state.
+
+%We backchain with a meta-level use of implication introduction using the tactic \coqtm{intros} to move the quantified variable declarations (including anything to the left of $\rightarrow$) to the context of assumptions of the proof state.
+\begin{align*}
+P &: \coqtm{Prop} \\
+Q &: \coqtm{Prop} \\
+H &: P \wedge Q \\[\pfshift{}]
+\cline{1-2}
+& P
+\end{align*}
+Now we use the \coqtm{inversion} tactic on $H$. The inversion tactic exploits the properties of injectivity and disjointedness of the constructors of an inductive type. Since we have not yet explained inductive types, it suffices here to say by the definition of conjunction and given that assumption $H$ is a witness of the conjunction $P \wedge Q$, it must be the case that we can also assume both $P$ and $Q$.
+\begin{align*}
+P &: \coqtm{Prop} \\
+Q &: \coqtm{Prop} \\
+H &: P \wedge Q \\
+H_1 &: P \\
+H_2 &: Q \\[\pfshift{}]
+\cline{1-2}
+& P
+\end{align*}
+Now the goal matches $H_1$ and we finish this proof with \coqtm{assumption}, which is a tactic that simply applies the \rl{Var} rule of Figure~\ref{fig:cicrules}. %Another way this proof can be completed is using the \coqtm{apply} tactic to write 
+
+\end{proof}
+\end{expl}
+
+
+\subsection{Some Coq Tactics, Tacticals, and Commands}
+\index{tactic}
+\index{tactical}
+
+A tactical is an operator that takes tactic arguments to build a tactic. Below are Coq tactics, tacticals, and commands used in the proofs in this thesis. These have been described using some terminology introduced earlier as well as informal descriptions. More information can be found in the Coq Reference Manual~\cite{coq}.
+
+\begin{description}
+ \item[\coqtm{intros}] ~\\
+  introduces variables and assumptions from the goal to the context of assumptions; a meta-level backward reasoning step of implication introduction; optional arguments assign names to the variables and assumptions introduced, otherwise default names are used
+ \item[\coqtm{apply}] ~\\
+  used either for backward reasoning, also known as \emph{backchaining}\index{backchaining}, on the goal, or forward reasoning, also known as \emph{forward chaining}\index{forward chaining}, on assumptions in the context; to backchain on the goal \coqtm{G} over some \coqtm{P : t1 -> t2} where \coqtm{G} matches \coqtm{t2} we write \coqtm{apply P} and the new goal is \coqtm{t1}; to forward chain with some \coqtm{H : t} with \coqtm{t} matching \coqtm{t1} in the context over the same \coqtm{P} we write \coqtm{apply P in H} and assumption \coqtm{H} is now \coqtm{t2} (see the proofs in Chapters~\ref{ch:slind} and~\ref{ch:gslind} for examples of use)
+ \item[\coqtm{constructor}] ~\\
+  a specialized form of \coqtm{apply} which applies an appropriate constructor for the type of the goal without naming the constructor; constructors are the names of the clauses of an inductive definition as will be described in Section~\ref{sec:coqinduction}; proofs using this tactic can be seen in Chapters~\ref{ch:slind} and~\ref{ch:gslind}
+ \item[\coqtm{reflexivity}] ~\\
+  solves a goal when it is an equality with both sides $\beta\delta\iota\zeta$-equivalent (see definition~\ref{def:convequiv})
+ \item[\coqtm{simpl}] ~\\
+  applies $\beta\iota$-reduction then expands constants from their definitions and again tries $\beta\iota$-reduction; by default this tactic is used on the goal but it can be used on an element \coqtm{H : t} in the context by writing \coqtm{simpl in H} to simplify \coqtm{t}
+ \item[\coqtm{rewrite}] ~\\
+  rewrites from an equality (replacing all occurrences in the proof state of one side of the equality with the other) that is either an assumption, a local definition, or a theorem; optionally use either \coqtm{<-} or \coqtm{->} to give the rewrite direction
+ \item[\coqtm{inversion}] ~\\
+  all conditions derived for each constructor of the type of the argument are new assumptions; for each constructor matched, the proof has one new subgoal with the premises of that clause as new assumptions in the context (see example~\ref{ex:interactivepf})
+ \item[\coqtm{induction}] ~\\
+  applies the appropriate induction principle for the type we induct over; see Section~\ref{sec:coqinduction} for a discussion on induction in Coq
+ \item[\coqtm{assumption}] ~\\
+  used when the goal matches an assumption to complete the proof of a goal
+ \item[\coqtm{auto}] ~\\
+  attempts to prove the goal automatically using results in a hints database
+ \item[\coqtm{Hint}] ~\\
+  a Coq command; using \coqtm{Hint Resolve} \emph{theorem\_name} adds \emph{theorem\_name} to a list of hints used by \coqtm{auto}
+ \item[\coqtm{try}] ~\\
+  a tactical that tries to apply the tactic given as an argument and if it fails does not cause an error
+ \item[\coqtm{;}] ~\\
+  applies tactics in sequence
+\end{description}
+
+Many of the tactics can be replaced with the same tactic name prefixed with the letter \emph{e} (e.g. \coqtm{eapply}). This provides placeholders of appropriate type that act as logical variables that can be filled in by unification. They are used where we would otherwise need to provide a witness in cases of application as backward reasoning on the goal.
+
+
+
+\section{Induction in Coq}
+\label{sec:coqinduction}
+
+\cic{} extends \coc{} by adding inductive type\index{inductive type} definitions. An inductive type is a type with \emph{constructors}\index{constructor} that may take arguments of that type, so it is self-referential. For example, the natural number type $\mathbb{N}$ is defined inductively in Coq as:
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+Inductive nat : Set :=
+| Z : nat
+| S : nat -> nat.
+\end{lstlisting}
+\end{tabular}
+\end{center}
+In Coq, we declare that we are defining an inductive type with the keyword \coqtm{Inductive}. The name of the type is \coqtm{nat} and its type is \coqtm{Set}. This inductive type has two \emph{constructors}, \coqtm{Z} (to represent zero) and \coqtm{S} (to represent the successor function). We can understand this type as saying that any natural number can be constructed either as zero or the successor of some other natural number and these are the only two ways to construct natural numbers.
+
+From an inductive type, Coq automatically generates an \emph{induction principle}\index{induction principle} whose target type is \coqtm{Prop}. To prove a property of all elements of a type, proofs using these induction principles have one subcase for each constructor of the type. The induction principle for \coqtm{nat} is in Figure~\ref{fig:natind}, where $P$ is the property to be proven of all natural numbers. We sometimes refer to $P$ as the \emph{induction property}\index{induction property}.
+
+\begin{figure}
+\begin{align*}
+\coqtm{nat\_ind} &: \forall (P : \coqtm{nat} \rightarrow \coqtm{Prop}), \\
+(*\coqtm{Z}*) & \qquad P \; \coqtm{Z} \rightarrow \\
+(*\coqtm{S}*) & \qquad (\forall (m : \coqtm{nat}), P \; m \rightarrow P \; (\coqtm{S} \; m)) \rightarrow \\
+& \forall (n : \coqtm{nat}), P \; n
+\end{align*}
+\caption{Induction principle for type \coqtm{nat} \label{fig:natind}}
+\end{figure}
+
+Constructors that have recursive occurrences of the type being defined will have corresponding induction subcases with \emph{induction hypotheses}\index{induction hypothesis}. An example of such a constructor is \coqtm{S} in the definition of \coqtm{nat} because it requires a \coqtm{nat} argument. Notice the corresponding induction subcase is to prove $\forall (m : \coqtm{nat}), P \; m \rightarrow P \; (\coqtm{S} \; m)$. The formula $P \; m$ is an induction hypothesis.
+
+Now that we have an inductive type defined in Coq, namely \coqtm{nat}, we can define functions by primitive recursion over this inductive type. This is done using the $\coqtm{match} \ldots \coqtm{with} \ldots \coqtm{end}$ construction. To define a recursive function over $n$ of type \coqtm{nat}, we need to consider the possible constructions of $n$. From the definition of \coqtm{nat}, we see that either $n = \coqtm{Z}$ or $n = \coqtm{S} \, m$ where $m$ has type \coqtm{nat}. We need to decide what happens in either case. Using the Coq syntax, we can write a primitive recursive function over $n$ as:
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+Fixpoint recursive_nat (n : nat) :=
+  match n with
+  | Z => f1
+  | S m => f2
+  end.
+\end{lstlisting}
+\end{tabular}
+\end{center}
+where \coqtm{Fixpoint} is a keyword for defining recursive functions and \coqtm{recursive\_nat} is the function name. If \coqtm{n} evaluates to \coqtm{Z}, then the result is \coqtm{f1}. If \coqtm{n} evaluates to \coqtm{S m'} for some \coqtm{m'} of type \coqtm{nat}, then the result is \coqtm{f2} with \coqtm{m} replaced by \coqtm{m'} by \iota-reduction.
+
+\begin{expl}[Proof by Induction]
+\index{induction}
+
+We will see how to prove the statement $\forall (n : \coqtm{nat}), n = n + \coqtm{Z}$ by induction in Coq, also pointing out the induction property used by the induction principle. This proof uses the definition of $+$, which is notation for \coqtm{plus}, in reductions to irreducible terms.
+
+Using the $\coqtm{match} \ldots \coqtm{with} \ldots \coqtm{end}$ construction described above, \coqtm{plus n m} is defined recursively with cases on the structure of \coqtm{n} as:
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+Fixpoint plus (n m : nat) :=
+  match n with
+  | Z => m
+  | S n' => S (plus n' m)
+  end.
+\end{lstlisting}
+\end{tabular}
+\end{center}
+We write $\coqtm{n} + \coqtm{m}$ as infix notation for \coqtm{plus n m}
+
+\paragraph{Claim:} $\vdash \forall (n : \coqtm{nat}), n = n + \coqtm{Z}$ \\
+
+\begin{proof}
+
+This proof is completed bottom-up, so the initial proof state is the node at the root of the proof tree. The context is empty and the goal is the statement that we wish to prove.
+\begin{align*}
+\cline{1-2}
+& \forall (n : \coqtm{nat}), n = n + \coqtm{Z}
+\end{align*}
+The tactic \coqtm{induction} $n$ is used to backchain with the induction principle for natural numbers in Figure~\ref{fig:natind}. This proof has two subcases, one corresponding to each constructor of \coqtm{nat}. These are to prove $P \; \coqtm{Z}$ and $\forall (m : \coqtm{nat}), P \; m \rightarrow P \; (\coqtm{S} \; m)$ where
+$$
+P \coloneqq \lambda (n : \coqtm{nat}) \; . \; n = n + \coqtm{Z}
+$$
+is the induction property.
+
+We will first prove $P \; \coqtm{Z}$ (usually called the ``base case''):
+\begin{align*}
+\cline{1-2}
+& \coqtm{Z} = \coqtm{Z} + \coqtm{Z}
+\end{align*}
+This is done by reducing $\coqtm{Z} + \coqtm{Z}$ to \coqtm{Z} by the first branch in the definition of $+$ and then with \coqtm{reflexivity}.
+
+To complete this proof we need to show $\forall (m : \coqtm{nat}), P \; m \rightarrow P \; (\coqtm{S} \; m)$ (the ``inductive step''):
+\begin{align*}
+\cline{1-2}
+& \forall (m : \coqtm{nat}), m = m + \coqtm{Z} \rightarrow \coqtm{S} \; m = (\coqtm{S} \; m) + \coqtm{Z}
+\end{align*}
+We make introductions into the context with \coqtm{intros}.
+\begin{align*}
+m &: \coqtm{nat} \\
+H &: m = m + \coqtm{Z} \\[\pfshift{}]
+\cline{1-2}
+& \coqtm{S} \; m = (\coqtm{S} \; m) + \coqtm{Z}
+\end{align*}
+The right side of the goal equality can be reduced by \coqtm{simpl}, using the second branch in the definition of $+$.
+\begin{align*}
+m &: \coqtm{nat} \\
+H &: m = m + \coqtm{Z} \\[\pfshift{}]
+\cline{1-2}
+& \coqtm{S} \; m = \coqtm{S} \; (m + \coqtm{Z})
+\end{align*}
+Now we can use $\coqtm{rewrite <- H}$ to replace $m + \coqtm{Z}$ with $m$ on the right side of the goal equality.
+\begin{align*}
+m &: \coqtm{nat} \\
+H &: m = m + \coqtm{Z} \\[\pfshift{}]
+\cline{1-2}
+& \coqtm{S} \; m = \coqtm{S} \; m
+\end{align*}
+The goal is an equality with both sides equal, so this proof is finished with \coqtm{reflexivity}.
+
+\end{proof}
+
+\end{expl}
+
+\subsection{Mutually Inductive Types}
+\index{mutual induction}
+
+A type may be built using types that are already defined. When two types have dependencies on each other, they cannot both be defined before the other. In this case we define a mutually inductive type\index{mutually inductive type}. An example of where this is useful is in defining two types \coqtm{even} and \coqtm{odd} which are unary relations to identify even and odd natural numbers, respectively. In Coq these can be defined as:
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+Inductive even : nat -> Prop :=
+| e_Z : even Z
+| e_S : forall (n : nat), odd n -> even (S n)
+with odd : nat -> Prop :=
+| o_S : forall (n : nat), even n -> odd (S n).
+\end{lstlisting}
+\end{tabular}
+\end{center}
+Intuitively this says that Z (meaning zero) is even and the successor of any odd number is even. Also, the successor of any even number is odd.
+
+Coq automatically generates an induction principle for each of these types. For \coqtm{even}, this is
+\begin{align*}
+\coqtm{even\_ind} &: \forall (P : \coqtm{nat} \rightarrow \coqtm{Prop}), \\
+(*\coqtm{e\_Z}*) & \qquad (P \; \coqtm{Z}) \rightarrow \\
+(*\coqtm{e\_S}*) & \qquad (\forall (n : \coqtm{nat}), \coqtm{odd} \; n \rightarrow P \; (S \; n)) \rightarrow \\
+& \forall (n : \coqtm{nat}), \coqtm{even} \; n \rightarrow P \; n
+\end{align*}
+where $P$ is the induction property for even natural numbers. Notice that a proof using this induction principle will have one subcase for each constructor of \coqtm{even}. Also, in the case corresponding to the constructor \coqtm{e\_S}, there is no induction hypothesis about the premise $\coqtm{odd} \; n$. So for some types and some theorems to prove, the generated induction principle is insufficient.
+
+The command \coqtm{Scheme} may be used to generate induction principles over mutually inductive types. These induction principles will have subcases for every constructor in every type in the mutually inductive type. Continuing the example above, we can get the following mutual induction principle over \coqtm{even}:
+\begin{align*}
+\coqtm{even\_mutind} &: \forall (P_1 \; P_2 : \coqtm{nat} \rightarrow \coqtm{Prop}), \\
+(*\coqtm{e\_Z}*) & \qquad (P_1 \; \coqtm{Z}) \rightarrow \\
+(*\coqtm{e\_S}*) & \qquad (\forall (n : \coqtm{nat}), \coqtm{odd} \; n \rightarrow P_2 \; n \rightarrow P_1 \; (S \; n)) \rightarrow \\
+(*\coqtm{o\_S}*) & \qquad (\forall (n : \coqtm{nat}), \coqtm{even} \; n \rightarrow P_1 \; n \rightarrow P_2 \; (S \; n)) \rightarrow \\
+& \forall (n : \coqtm{nat}), \coqtm{even} \; n \rightarrow P_1 \; n
+\end{align*}
+This induction principle has more cases but provides more powerful assumptions in each inductive case. Notice that now the subcase corresponding to the constructor \coqtm{e\_S} also has the induction hypothesis $P_2 \; n$ and we also have a subcase for the constructor \coqtm{o\_S}.
+
+
+\section{Conclusion}
+
+The \coc{} inference system implements a type checker, so it can be used both for proof verification and checking that a function satisfies its specification (i.e. it is a realization of the required type). It can also be used to construct a proof. By appropriately instantiating the \rl{Prod} rule, the system is made more expressive as a functional language and theorem proving system while still maintaining many desirable properties including strong normalization and consistency.
+
+Coq can be used to prove formalized statements. A large library of tactics are available to assist in proof development. Since Coq is an implementation of \cic{}, it is possible to define inductive types and then prove statements by induction over these types using automatically generated induction principles.
+
+The upcoming presentation will make use of all of the concepts just presented: the rich type system of \cic{}, interactive proofs, and inductive types, culminating in proofs by structural induction over mutually inductive dependent types.
+
+

@@ -1,0 +1,73 @@
+\section{GSL Induction Part III: Cut Rule Proven Admissible}
+\label{sec:cutadmiss}
+\index{cut admissibility}
+
+% section started here...
+
+Recall from Section \ref{sec:cutadmisssl} we are proving $\forall (\delta : \sltm{oo}), P \; \delta$ with $P$ defined as
+\begin{align*}
+& P : \sltm{oo} \rightarrow \hybridtm{Prop} := \lambda (\delta : \sltm{oo}) \; . \\
+& \qquad\qquad (\forall (c : \sltm{context}) (o : \sltm{oo}), \\
+& \qquad\qquad\qquad\qquad\qquad\quad \seqsl[c]{o} \rightarrow P_1 \; c \; o) \; \wedge \\
+& \qquad\qquad (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \hybridtm{atm}), \\
+& \qquad\qquad\qquad\qquad\qquad\quad \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a),
+\end{align*}
+where
+\begin{align*}
+P_1 &: \sltm{context} \rightarrow \sltm{oo} \rightarrow \coqtm{Prop} := \\
+& \qquad \lambda (c : \sltm{context}) (o : \sltm{oo}) \; . \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \underline{\seqsl[\inddyncon{}]{o}} \\
+P_2 &: \sltm{context} \rightarrow \sltm{oo} \rightarrow \sltm{atm} \rightarrow \coqtm{Prop} := \\
+& \qquad \lambda (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}) \; . \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \underline{\bchsl[\inddyncon{}]{o}{a}}
+\end{align*}
+
+As in the GSL proof of~\nameref{thm:monotone} (Theorem~\ref{thm:monotone}), we build on the inductive proof in Chapter \ref{ch:gslind}, unfolding $P_1$ and $P_2$ as defined here.
+% Redundant:
+%We will also make use of \sltm{weakening}, a corollary of the structural rule \sltm{monotone}.
+Recall that we have now introduced assumptions and applied the appropriate generalized SL rule to the underlined sequents in the definition of $P_1$ and $P_2$. For the proof of cut admissibility, there are two induction assumptions from $P_1$ and $P_2$ (so $w = 2$). Define $\mathit{IA}_1 \args{c , \inddyncon{}} \coloneqq (c = (\inddyncon{} , \delta))$ and $\mathit{IA}_2 \args{c , \inddyncon{}} \coloneqq \seqsl[\inddyncon{}]{\delta}$, where $\delta$ is the cut formula in the cut rule.
+
+\subsection{Sequent Subgoals}
+\label{subsec:cutpfseqprem}
+
+First we will prove the subgoals coming from the sequent premises, building on Figure \ref{fig:premgrseq} and using $\mathit{IA}_1$ and $\mathit{IA}_2$ as defined above. For a moment we will ignore the outer induction over the cut formula $\delta$. By ignore we mean let $\delta \coloneqq \eta$ where $\eta : \sltm{oo}$, and we will not display the induction hypothesis for this induction. The proof state for goal-reduction premises (resp. backchaining premises) is
+
+\newpage
+
+\begin{align*}
+\ol{H_m} &: \ol{Q_m} \args{c , o} \\
+\ol{\mathit{Hg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}})} \\
+\ol{\mathit{IHg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})} (\inddyncon{} : \sltm{context}), \\
+& \; (c \cup \ol{\gamma_n} \args{o}) = (\inddyncon{} , \eta) \rightarrow \seqsl[\inddyncon{}]{\eta} \rightarrow \seqsl[\inddyncon{}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}} \\
+\ol{\mathit{Hb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}}) \\
+\ol{\mathit{IHb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})} (\inddyncon{} : \sltm{context}), \\
+& \; (c \cup \ol{\gamma'_p} \args{o}) = (\inddyncon{} , \eta) \rightarrow \seqsl[\inddyncon{}]{\eta} \rightarrow \bchsl[\inddyncon{}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_1 &: c = (\inddyncon{} , \eta) \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\eta} \\
+\ol{x_{n,s_n}} &: \ol{R_{n,s_n}} \; (\mathit{resp.} \; \ol{y_{p,t_p}} : \ol{S_{p,t_p}}) \\[\pfshift{}]
+\cline{1-2}
+& (c \cup \ol{\gamma_n} \args{o} = ((\inddyncon{} \cup \ol{\gamma_n} \args{o}) , \eta)) , (\seqsl[\inddyncon{} \cup \ol{\gamma_n} \args{o}]{\eta}) \\
+& (\mathit{resp.} \; (c \cup \ol{\gamma'_p} \args{o} = ((\inddyncon{} \cup \ol{\gamma'_p} \args{o}) , \eta)) , (\seqsl[\inddyncon{} \cup \ol{\gamma'_p} \args{o}]{\eta}))
+\end{align*}
+
+To prove the sequent subgoal \seqsl[\inddyncon{} \cup \ol{\gamma_n} \args{o}]{\eta} (resp. \seqsl[\inddyncon{} \cup \ol{\gamma'_p} \args{o}]{\eta}), first apply weakening and the new subgoal is \seqsl[\inddyncon{}]{\eta} (resp. \seqsl[\inddyncon{}]{\eta}), provable by assumption $\mathit{IP}_2$.
+
+The subgoals concerning context equality are proven by context lemmas and assumption $\mathit{IP}_1$. That is, we rewrite $((\inddyncon{} \cup \ol{\gamma_n} \args{o}) , \eta)$ to $(\inddyncon{} , \eta) \cup \ol{\gamma_n} \args{o}$ (resp. $(\inddyncon{} \cup \ol{\gamma'_p} \args{o}) , \eta$ to $(\inddyncon{} , \eta) \cup \ol{\gamma'_p} \args{o}$). The new subgoal is $c \cup \ol{\gamma_n} \args{o} = (\inddyncon{} , \eta) \cup \ol{\gamma_n} \args{o}$ (resp. $(c \cup \ol{\gamma'_p} \args{o} = (\inddyncon{} , \eta) \cup \ol{\gamma'_p} \args{o}$). Apply~\nameref{lem:context_sub_sup} (Lemma~\ref{lem:context_sub_sup}) to get assumption $\mathit{IP}_1$.
+
+%(*maybe move?) A few comments are in order to review what is proven so far. We have considered a generalized form of rules of the SL and attempted to prove cut admissibility. We made constraints on the rule that allow us to work through the proof as described in the proof outline and the diagrams presented there. With these constraints we were able to prove the subcases of the sequent mutual induction for all rules other than \rlnmsinit{}. Since induction was first over the cut formula $\delta$ and there are seven formula construction rules and 14 sequent rule subcases just proven, the above argument can be applied to 98 of the 105 subcases (see Figure~\ref{fig:cutpf} for Coq code to automate proofs of these 98 subcases).
+
+
+\subsection{Non-Sequent Subgoals}%
+
+In Section \ref{subsec:subpfnonseq} we saw that the only rule of the SL whose corresponding subcase still needs to be proven is \rlnmsinit{}. For the non-sequent subgoals we were able to complete the proof while the cut formula $\delta$ was represented as a parameter (and thus could have any formula structure). In the remaining non-sequent proof branch we need to make use of the nested structure of this induction. The proof of this subcase is shown in detail in Section~\ref{subsec:cutadmissnonseq}.
+
+\bigskip
+
+In summary, the outer induction over $\delta$ gave seven cases for seven \sltm{oo} constructors. For each of these, an inner induction over sequents gave 15 new subgoals for 15 rules. We saw that for 14 of 15 rules, each rule has the same proof structure for every form of $\delta$. The remaining subgoals were all for the rule \rlnmsinit{} and were more challenging due to the presence of a non-sequent premise that depends on the context of the conclusion.
+
+\end{proof}
+
+\bigskip
+
+Using the generalized proof presented in this chapter and instantiating the GSL to the SL as in Section~\ref{sec:sltogsl}, we have found condensed proofs of~\nameref{thm:monotone} (Theorem~\ref{thm:monotone}) and~\nameref{thm:cut_admissible} (Theorem~\ref{thm:cut_admissible}).

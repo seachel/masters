@@ -1,0 +1,169 @@
+\usepackage{framed}
+\usepackage{enumitem}
+\usepackage{mathtools}
+\usepackage{float}
+
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{stmaryrd}
+\usepackage{proof}
+\usepackage{bussproofs}
+\usepackage{lscape}
+
+%\usepackage{cite}
+\usepackage{url}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% FORMATTING SEQUENTS
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\oltm}[1]{\texttt{#1}}          % inline OL terms
+\newcommand{\sltm}[1]{\texttt{#1}}          % inline SL terms
+\newcommand{\mltm}[1]{\texttt{#1}}          % inline reasoning logic terms
+\newcommand{\hybridtm}[1]{\texttt{#1}}      % inline Hybrid terms
+\newcommand{\coqtm}[1]{\texttt{#1}}         % inline Coq terms
+
+\newcommand{\rl}[1]{\textit{#1}}   % rule name
+
+\newcommand{\signature}{\Sigma}             % default signature
+\newcommand{\dyncon}{\Gamma}              % default dynamic context
+\newcommand{\statcon}{\Pi}                % default static context
+\newcommand{\inddyncon}{\Gamma'}
+
+% standard sequents
+\newcommand{\seq}[2][\signature{} \, ; \, \dyncon{}]{\ensuremath{#1 \vdash #2}}
+\newcommand{\bch}[3][\signature{} \, ; \, \dyncon{}]{\ensuremath{#1 , {[#2]} \vdash #3}}
+
+% SL sequents
+\newcommand{\seqsl}[2][\dyncon{}]{\ensuremath{#1 \rhd #2}}
+\newcommand{\bchsl}[3][\dyncon{}]{\ensuremath{#1 , {[#2]} \rhd #3}}
+
+% specify signature
+\newcommand{\seqslsig}[2]{\seqsl[\signature{} \, , \, #1 \, ; \, \dyncon{}]{#2}}
+
+
+\newcommand{\atom}[1]{\ensuremath{\langle \; #1 \; \rangle}}  % atomic formula
+\newcommand{\prog}[2]{\ensuremath{#1 \; {:} {-} \; #2}}     % static program clause
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% FORMATTING RULES
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\rlnmsbc}{\rl{g\_prog}}
+\newcommand{\rlnmsinit}{\rl{g\_dyn}}
+\newcommand{\rlnmst}{\rl{g\_tt}}
+\newcommand{\rlnmsand}{\rl{g\_and}}
+\newcommand{\rlnmsimp}{\rl{g\_imp}}
+\newcommand{\rlnmsall}{\rl{g\_all}}
+\newcommand{\rlnmsalls}{\rl{g\_allx}}
+\newcommand{\rlnmssome}{\rl{g\_some}}
+\newcommand{\rlnmbmatch}{\rl{b\_match}}
+\newcommand{\rlnmbanda}{\rl{$b\_and_1$}}
+\newcommand{\rlnmbandb}{\rl{$b\_and_2$}}
+\newcommand{\rlnmbimp}{\rl{b\_imp}}
+\newcommand{\rlnmball}{\rl{b\_all}}
+\newcommand{\rlnmballs}{\rl{b\_allx}}
+\newcommand{\rlnmbsome}{\rl{b\_some}}
+
+\newcommand{\inferH}[3][]{\infer[\fontsize{8pt}{8pt}{#1}]{#2}{#3}}
+
+\newcommand{\rlsbc}{\inferH[\rlnmsbc{}]{\seqsl{\atom{A}}}{\prog{A}{G} & \seqsl{G}}}
+\newcommand{\rlsinit}{\inferH[\rlnmsinit{}]{\seqsl{\atom{A}}}{D \in \dyncon{} & \bchsl{D}{A}}}
+\newcommand{\rlst}{\inferH[\rlnmst{}]{\seqsl{\sltm{T}}}{}}
+\newcommand{\rlsand}{\inferH[\rlnmsand{}]{\seqsl{G_1 \, \& \, G_2}}{\seqsl{G_1} & \seqsl{G_2}}}
+\newcommand{\rlsimp}{\inferH[\rlnmsimp{}]{\seqsl{D \longrightarrow G}}{\seqsl[\dyncon{} \, , \, D]{G}}}
+\newcommand{\rlsall}{\inferH[\rlnmsall{}]{\seqsl{\sltm{All} \; G}}{\forall (E : \hybridtm{expr con}), (\sltm{proper} \; E \rightarrow \seqsl{G \, E})}}
+\newcommand{\rlsalls}{\inferH[\rlnmsalls{}]{\seqsl{\sltm{Allx} \; G}}{\forall (E : \sltm{X}), (\seqsl{G \, E})}}
+\newcommand{\rlssome}{\inferH[\rlnmssome{}]{\seqsl{\sltm{Some} \; G}}{\sltm{proper} \; E & \seqsl{G \, E}}}
+\newcommand{\rlbmatch}{\inferH[\rlnmbmatch{}]{\bchsl{\atom{A}}{A}}{}}
+\newcommand{\rlbanda}{\inferH[\rlnmbanda{}]{\bchsl{D_1 \, \& \, D_2}{A}}{\bchsl{D_1}{A}}}
+\newcommand{\rlbandb}{\inferH[\rlnmbandb{}]{\bchsl{D_1 \, \& \, D_2}{A}}{\bchsl{D_2}{A}}}
+\newcommand{\rlbimp}{\inferH[\rlnmbimp{}]{\bchsl{G \longrightarrow D}{A}}{\seqsl{G} & \bchsl{D}{A}}}
+\newcommand{\rlball}{\inferH[\rlnmball{}]{\bchsl{\sltm{All} \; D}{A}}{\sltm{proper} \; E & \bchsl{D \, E}{A}}}
+\newcommand{\rlballs}{\inferH[\rlnmballs{}]{\bchsl{\sltm{Allx} \; D}{A}}{\bchsl{D \, E}{A}}}
+\newcommand{\rlbsome}{\inferH[\rlnmbsome{}]{\bchsl{\sltm{Some} \; D}{A}}{\forall (E : \hybridtm{expr con}), (\sltm{proper} \; E \rightarrow \bchsl{D \, x}{A})}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% FORMATTING COQ
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\lstdefinelanguage{Coq}
+{
+  % list of keywords
+  morekeywords={
+    fun,
+    forall,
+    exists,
+    Set,
+    Prop,
+    Type,
+    Definition,
+    Inductive,
+    Fixpoint,
+    Theorem,
+    Lemma,
+    Example,
+    Proof,
+    Qed
+  },
+  emph={
+    %hodb,
+    %hAbs, hApp, dAbs, dApp, dVar,
+    s_bc, s_init, s_imp, s_all, s_alls, s_some,
+    b_match, b_and1, b_and2, b_imp, b_all, b_alls, b_some,
+    APP, CON, ABS, VAR, lambda, abstr
+    },
+  %emphstyle={\color{Brightpurple}},
+  sensitive=true, % keywords are case-sensitive
+  morecomment=[l]{//}, % l is for line comment
+  morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+ 
+% Set Language
+\lstset{
+  language={Coq},
+  basicstyle=\small\ttfamily, % Global Code Style
+  captionpos=b, % Position of the Caption (t for top, b for bottom)
+  extendedchars=true, % Allows 256 instead of 128 ASCII characters
+  tabsize=2, % number of spaces indented when discovering a tab 
+  columns=fixed, % make all characters equal width
+  keepspaces=true, % does not ignore spaces to fit width, convert tabs to spaces
+  showstringspaces=false, % lets spaces in strings appear as real spaces
+  breaklines=true, % wrap lines if they don't fit
+  %frame=trbl, % draw a frame at the top, right, left and bottom of the listing
+  %frameround=tttt, % make the frame round at all four corners
+  framesep=4pt, % quarter circle size of the round corners
+  %numbers=left, % show line numbers at the left
+  %numberstyle=\tiny\ttfamily, % style of the line numbers
+  %commentstyle=\color{eclipseGreen}, % style of comments
+  %keywordstyle=\color{Forestgreenlt}, % style of keywords
+  %stringstyle=\color{eclipseBlue}, % style of strings
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% FORMATTING, OTHER
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\type}[1]{\texttt{Type\ensuremath{_{#1}}}}
+\newcommand{\N}{\ensuremath{\mathbb{N}}}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}}
+\newcommand{\cic}{\textsc{Cic}}
+\newcommand{\coc}{\textsc{CoC}}
+\newcommand{\reduce}{\; \triangleright_{\beta\delta\iota} \;}
+%\newcommand{\seq}[2][\Gamma]{\ensuremath{#1 \vdash #2}}
+\newcommand{\subtype}{\leq_{\beta\delta\iota}}
+
+\newcommand{\pfshift}{-5pt}
+
+\newcommand{\ol}[1]{\overline{#1}}
+
+\newcommand{\args}[1]{(\hspace{-0.35em} \langle #1 \rangle \hspace{-0.35em})}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem*{thm}{Theorem}
+\newtheorem{lem}{Lemma}
+\newtheorem{corollary}{Corollary}

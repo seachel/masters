@@ -1,0 +1,95 @@
+\section{Hybrid}
+\label{sec:hybrid}
+
+The Calculus of Inductive Constructions (CIC)
+\cite{PaulinMohring93,BertotCasteran:2004} as implemented by Coq is
+the \emph{reasoning logic} (RL) of Hybrid.  Both SLs and OLs are
+implemented as inductive types in Coq, and Coq is used to carry out
+all formal reasoning.
+%
+% To illusrate the specification layer in Hybrid, we will introduce
+% HH and describe the basics of its encoding in Coq.  Details of its
+% implementation are found in the next section.  For the object-level,
+% we choose .. and introduce just enough details to illustrate the
+% encoding of OLs in general.
+%
+Hybrid is implemented as a Coq library.  This library first introduces
+a special type \mltm{expr} that encodes a de Bruijn representation of
+$\lambda$-terms.  It is defined inductively and its definition appears
+in Figure~\ref{fig:expr}.
+\begin{figure}
+\begin{lstlisting}
+Inductive expr : Set :=
+| CON : con -> expr
+| VAR : var -> expr
+| BND : bnd -> expr
+| APP : expr -> expr -> expr
+| ABS : expr -> expr.
+\end{lstlisting}
+\caption{Terms in Hybrid \label{fig:expr}}
+\end{figure}
+Here, \mltm{VAR} and
+\mltm{BND} represent bound and free variables, respectively, and
+\mltm{var} and \mltm{bnd} are defined to be the natural numbers.  The
+type \mltm{con} is a parameter to be filled in when defining the
+constants used to represent an OL.  The library then includes a series
+of definitions used to define the operator \mltm{LAM} of type
+$(\mltm{expr}\rightarrow\mltm{expr})\rightarrow\mltm{expr}$, which
+provides the capability to express OL syntax using HOAS.  Expanding
+its definition fully down to primitives gives the low-level de Bruijn
+representation, which is hidden from the user when reasoning about
+meta-theory. In fact, the user only needs \mltm{CON}, \mltm{VAR},
+\mltm{APP}, and \mltm{LAM} to define operators for OL syntax.
+One other predicate from the Hybrid library will appear in the proof
+development: $\mltm{proper}:\mltm{expr}\rightarrow\coqtm{Prop}$.  This
+predicate rules out terms that have occurrences of bound variables
+that do not have a corresponding binder (\emph{dangling indices}).
+
+To illustrate the encoding of OL syntax, we consider the example
+mentioned earlier of reasoning about the correspondence between a HOAS
+encoding and a de Bruijn representation of the terms of the untyped
+$\lambda$-calculus.\footnote{In \cite{WCGN:PPDP13}, inference rules
+  and proofs of properties of this OL are also discussed.}
+%
+We fill in the definition of \mltm{con}, and define operators
+\sltm{hApp} and \sltm{hAbs} for the HOAS encoding and operators of the
+untyped $\lambda$-calculus, and \sltm{dApp}, \sltm{dAbs}, and
+\sltm{dVar} for object-level de Bruijn terms.
+Figure~\ref{fig:olsyntax} defines this encoding.
+%
+\begin{figure}
+\begin{lstlisting}
+Inductive con : Set := 
+| hAPP : con | hABS : con
+| dAPP : con | dABS : con | dVAR : nat -> con.
+
+Definition hApp : expr -> expr -> expr :=
+ fun (t1 : expr) => fun (t2 : expr) =>
+  APP (APP (CON hAPP) t1) t2. 
+Definition hAbs : (expr -> expr) -> expr :=
+ fun (f : expr -> expr) => 
+  APP (CON hABS) (LAM f).
+
+Definition dApp : expr -> expr -> expr :=
+ fun (t1 : expr) => fun (t2 : expr) =>
+  APP (APP (CON dAPP) t1) t2. 
+Definition dAbs : expr -> expr :=
+ fun (d : expr) => APP (CON cdABS) d.
+Definition dVar : nat -> expr :=
+ fun (n : nat) => (CON (dVAR n)).
+\end{lstlisting}
+\caption{Encoding OL Syntax in Hybrid \label{fig:olsyntax}}
+\end{figure}
+%
+As mentioned, the type \mltm{con} is actually a parameter in
+the Hybrid library. This will be explicit when discussing Coq proofs,
+where we write $(\mltm{expr}~ \mltm{con})$ as the type used to express
+OL terms.  Also, the keyword \coqtm{fun} is Coq's abstraction
+operator.  In this paper, we will sometimes use the standard notation
+from the $\lambda$-calculus for function abstraction.  For example,
+the definition of \sltm{hApp} can also be written as $\lambda (\mltm{t1} :
+\mltm{expr}~ \mltm{con}) (\mltm{t2} : \mltm{expr}~ \mltm{con}) \; . \;
+\mltm{APP}~ (\mltm{APP}~ (\mltm{CON}~ \mltm{hAPP})~ \mltm{t1})~
+\mltm{t2}$.
+
+

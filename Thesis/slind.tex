@@ -1,0 +1,654 @@
+Proving admissibility of structural rules of a specification logic (SL) frees us from defining them as axiomatic and having to make external justifications for such axioms. We prove admissibility of the structural rules of contraction, weakening, exchange, and cut for both goal-reduction and backchaining sequents. Once proven at the specification level, they can be reused for any OL using this SL. Cut admissibility is particularly useful and considerably more challenging to prove than the other structural rules. It establishes consistency and also provides justification for substituting a formula for an assumption in a context of assumptions. It can greatly simplify reasoning about OLs in systems that provide HOAS.
+
+We can prove properties of this logic using the mutual structural induction principle over the rules of the SL from Figure~\ref{fig:seqind} when the theorem (or goal statement) is the same form as the conclusion of the induction principle. Backchaining over the induction principle, we will have fifteen subcases; one subcase corresponding to each rule of the SL. Many of these cases have similar proofs. We will look at a few cases that are interesting for the following reasons:
+\begin{description}
+ \item[\rlnmsinit{}] ~\\
+  This rule has a goal-reduction sequent conclusion, a non-sequent premise depending on the context of the conclusion and a backchaining sequent premise.
+ \item[\rlnmsimp{}] ~\\
+  This rule has a goal-reduction sequent conclusion and a sequent premise with a context different from that of the conclusion.
+ \item[\rlnmbimp{}] ~\\
+  This rule has a backchaining sequent conclusion and both a goal-reduction and backchaining sequent premise.
+\end{description}
+
+\section{Structural Rules}
+\label{sec:structsl}
+\index{structural rules}
+
+For our SL we prove the standard structural rules of weakening, contraction, and exchange for both goal-reduction and backchaining sequents: \index{weakening}\index{contraction}\index{exchange}
+\begin{theorem}[\sltm{gr\_weakening}]
+\label{thm:gr_weakening}
+$$
+\vcenter{\infer{\seqsl[\dyncon{} \, , \beta_1]{\beta_2}}{\seqsl{\beta_2}}}
+$$
+\end{theorem}
+
+\smallskip
+
+\begin{theorem}[\sltm{bc\_weakening}]
+\label{thm:bc_weakening}
+$$
+\vcenter{\infer{\bchsl[\dyncon{} \, , \beta_1]{\beta_2}{\alpha}}{\bchsl{\beta_2}{\alpha}}}
+$$
+\end{theorem}
+
+\smallskip
+
+\begin{theorem}[\sltm{gr\_contraction}]
+$$
+\vcenter{\infer{\seqsl[\dyncon{} \, , \beta_1]{\beta_2}}{\seqsl[\dyncon{} \, , \, \beta_1 \, , \beta_1]{\beta_2}}}
+$$
+\end{theorem}
+
+\smallskip
+
+\begin{theorem}[\sltm{bc\_contraction}]
+$$
+\vcenter{\infer{\bchsl[\dyncon{} \, , \, \beta_1]{\beta_2}{\alpha}}{\bchsl[\dyncon{} \, , \, \beta_1 \, , \, \beta_1]{\beta_2}{\alpha}}}
+$$
+\end{theorem}
+
+\smallskip
+
+\begin{theorem}[\sltm{gr\_exchange}]
+$$
+\vcenter{\infer{\seqsl[\dyncon{} \, , \beta_1 \, , \, \beta_2]{\beta_3}}{\seqsl[\dyncon{} \, , \, \beta_2 \, , \, \beta_1]{\beta_3}}}
+$$
+\end{theorem}
+
+\smallskip
+
+\begin{theorem}[\sltm{bc\_exchange}]
+$$
+\vcenter{\infer{\bchsl[\dyncon{} \, , \, \beta_1 \, , \, \beta_2]{\beta_3}{\alpha}}{\bchsl[\dyncon{} \, , \, \beta_2 \, , \, \beta_1]{\beta_3}{\alpha}}}
+$$
+\end{theorem}
+
+\bigskip
+
+\noindent These are all corollaries of a general theorem:
+
+\begin{theorem}[\sltm{monotone}]
+$$
+\vcenter{\infer{\seqsl[\inddyncon{}]{\beta}}{\dyncon{} \subseteq \inddyncon{} & \seqsl[\dyncon{}]{\beta}}} \;\; \mathrm{and} \;\; \vcenter{\infer{\bchsl[\inddyncon{}]{\beta}{\alpha}}{\dyncon{} \subseteq \inddyncon{} & \bchsl[\dyncon{}]{\beta}{\alpha}}}
+$$
+\label{thm:monotone}
+\end{theorem}
+
+\begin{proof}
+
+Theorem~\ref{thm:monotone} is proven by mutual structural induction over the premises \seqsl{\beta} and \bchsl{\beta}{\alpha}. Defining $P_1$ and $P_2$ as
+\begin{align*}
+P_1 :=& \lambda \; (c : \sltm{context}) (o : \sltm{oo}) \; . \\
+& \qquad \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o} \\
+P_2 :=& \lambda \; (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}) \; . \\
+& \qquad \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o}{a}
+\end{align*}
+we are proving
+\begin{align*}
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}), \\
+& (\seqsl[c]{o}) \rightarrow (P_1 \; c \; o)) \;\; \wedge \\
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}) \; (a : \sltm{atm}), \\
+& (\bchsl[c]{o}{a}) \rightarrow (P_2 \; c \; o \; a))
+\end{align*}
+which has the form discussed in Section~\ref{sec:induction}, so the mutual structural induction principle may be used. Here we will show the cases for the rules \rlnmsinit{}, \rlnmsimp{}, and \rlnmbimp{}. The antecedent of the induction principle for each subcase gives the initial subgoals.\\
+
+\paragraph{Case $\vcenter{\rlsinit{}}$:} ~\\
+
+\smallskip
+
+This rule has one non-sequent premise and one backchaining sequent premise. So there will be one induction hypothesis from the backchaining sequent premise. From the induction principle in Figure~\ref{fig:seqind} we need to prove
+\begin{align*}
+\forall (c : \sltm{context}) & (o : \sltm{oo}) (a : \sltm{atm}), \\
+& o \in c \rightarrow \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a \rightarrow P_1 \; c \; \atom{a}
+\end{align*}
+After introductions the proof state is
+\begin{align*}
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: P_2 \; c \; o \; a \\[\pfshift{}]
+\cline{1-2}
+& P_1 \; c \; \atom{a}
+\end{align*}
+Unfolding $P_1$ and $P_2$ as defined for this theorem, we have
+\begin{align*}
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o}{a} \\[\pfshift{}]
+\cline{1-2}
+& \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+Next we make introductions from the goal.
+\begin{align*}
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o}{a} \\
+\inddyncon{} &: \sltm{context} \\
+P_1 &: c \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+Now the goal is a goal-reduction sequent with an atomic formula. We can backchain with the rule \rlnmsinit{} and will get two new subgoals from the premises of this rule.
+\begin{align*}
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o}{a} \\
+\inddyncon{} &: \sltm{context} \\
+P_1 &: c \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& (o \in \inddyncon{}), (\bchsl[\inddyncon{}]{o}{a})
+\end{align*}
+To prove the second subgoal we use induction hypothesis $\mathit{IHb}_1$ to get the new subgoal $c \subseteq \inddyncon{}$ which is provable by induction assumption $P_1$. To prove the first, we need to unfold the definition of subset in $P_1$.
+\begin{align*}
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o}{a} \\
+\inddyncon{} &: \sltm{context} \\
+P_1 &: \forall (o : \sltm{oo}), o \in c \rightarrow o \in \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& o \in \inddyncon{}
+\end{align*}
+Backchaining over $P_1$ we get the new subgoal $o \in c$ which is provable by assumption $H_1$. The proof for this case is complete.
+
+\paragraph{Case $\vcenter{\rlsimp{}}$:} ~\\
+
+This rule has one goal-reduction sequent premise which gives one induction hypothesis. From the induction principle the goal is
+$$
+\forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}), \seqsl[c,o_1]{o_2} \rightarrow P_1 \; (c,o_1) \; o_2 \rightarrow P_1 \; c \; (o_1 \longrightarrow o_2)
+$$
+After introductions we are proving
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c,o_1]{o_2} \\
+\mathit{IHg}_1 &: P_1 \; (c,o_1) \; o_2 \\[\pfshift{}]
+\cline{1-2}
+& P_1 \; c \; (o_1 \longrightarrow o_2)
+\end{align*}
+Unfolding $P_1$ as defined for this theorem, we have
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c,o_1]{o_2} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), (c,o_1) \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o_2} \\[\pfshift{}]
+\cline{1-2}
+& \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o_1 \longrightarrow o_2}
+\end{align*}
+Next we make introductions from the goal.
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c,o_1]{o_2} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), (c,o_1) \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o_2} \\
+\inddyncon{} &: \sltm{context} \\
+P_1 &: c \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{o_1 \longrightarrow o_2}
+\end{align*}
+The rule \rlnmsimp{} is the only rule of the SL that we can backchain over with the current goal.
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c,o_1]{o_2} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), (c,o_1) \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o_2} \\
+\inddyncon{} &: \sltm{context} \\
+P_1 &: c \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{} , o_1]{o_2}
+\end{align*}
+Now we use the induction hypothesis $\mathit{IHg}_1$. This step of backward reasoning gives the new subgoal $c , o_1 \subseteq \inddyncon{} , o_1$. Next backchain with the context lemma \nameref{lem:context_sub_sup} (Lemma~\ref{lem:context_sub_sup}) and we have to prove $c \subseteq \inddyncon{}$ which is provable by the induction assumption $P_1$. The proof for this case is complete.
+
+\paragraph{Case $\vcenter{\rlbimp{}}$:} ~\\
+
+\medskip
+
+This rule has one goal-reduction sequent premise and one backchaining sequent premise. So there will be one induction hypothesis from each sequent premise. From the induction principle we need to prove 
+\begin{align*}
+& \forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad \seqsl[c]{o_1} \rightarrow P_1 \; c \; o_1 \rightarrow \bchsl[c]{o_2}{a} \rightarrow P_2 \; c \; o_2 \; a \rightarrow P_2 \; c \; (o_1 \longrightarrow o_2) \; a
+\end{align*}
+After introductions the proof state is
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c]{o_1} \\
+\mathit{IHg}_1 &: P_1 \; c \; o_1 \\
+\mathit{Hb}_1 &: \bchsl[c]{o_2}{a} \\
+\mathit{IHb}_1 &: P_2 \; c \; o_2 \; a \\[\pfshift{}]
+\cline{1-2}
+& P_2 \; c \; (o_1 \longrightarrow o_2) \; a
+\end{align*}
+We unfold uses of $P_1$ and $P_2$.
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c]{o_1} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o_1} \\
+\mathit{Hb}_1 &: \bchsl[c]{o_2}{a} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o_2}{a} \\[\pfshift{}]
+\cline{1-2}
+& \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[c]{o_1 \longrightarrow o_2}{a}
+\end{align*}
+Next we can make introductions from the goal.
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c]{o_1} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o_1} \\
+\mathit{Hb}_1 &: \bchsl[c]{o_2}{a} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o_2}{a} \\
+\mathit{IP}_1 &: c \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& \bchsl[\inddyncon{}]{o_1 \longrightarrow o_2}{a}
+\end{align*}
+The only SL rule whose conclusion matches the goal is \rlnmbimp{} so we backchain with this rule to get two new subgoals.
+
+\begin{align*}
+\mathit{Hg}_1 &: \seqsl[c]{o_1} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{o_1} \\
+\mathit{Hb}_1 &: \bchsl[c]{o_2}{a} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{o_2}{a} \\
+\mathit{IP}_1 &: c \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& (\seqsl[\inddyncon{}]{o_1}), (\bchsl[\inddyncon{}]{o_2}{a})
+\end{align*}
+We backchain over the appropriate induction hypothesis for each of these subgoals, and in both cases get the subgoal $c \subseteq \inddyncon{}$, provable by induction assumption $\mathit{IP}_1$. The proof of this subcase is complete.
+
+
+\section{Cut Admissibility}
+\label{sec:cutadmisssl}
+\index{cut admissibility}
+
+The cut rule is shown to be admissible in this specification logic by proving the following:
+
+\begin{theorem}[\sltm{cut\_admissible}]
+\label{thm:cut_admissible}
+$$
+\vcenter{\infer{\seqsl[\dyncon{}]{\beta}}{\seqsl[\dyncon{} , \delta]{\beta} & \seqsl[\dyncon{}]{\delta}}}
+\;\; \mathrm{and} \;\;
+\vcenter{\infer{\bchsl[\dyncon{}]{\beta}{\alpha}}{\bchsl[\dyncon{} , \delta]{\beta}{\alpha} & \seqsl[\dyncon{}]{\delta}}}
+$$
+\end{theorem}
+\noindent Since our specification logic makes use of two kinds of sequents, we prove two cut rules. These correspond to the two conjuncts above, where the first is for goal-reduction sequents and the second is for backchaining sequents. \\
+
+\begin{proof}[\textbf{Outline}]
+
+This proof will be a nested induction, first over the cut formula $\delta$, then over the sequent premises with $\delta$ in their contexts. Since there are seven rules for constructing formulas and 15 SL rules, this will result in 105 subcases. These can be partitioned into five classes with the same proof structure, four of which we briefly illustrate presently.
+
+%Technical details based on the particular statement to be proven will be seen in the main proof where we again consider the generalized form of SL rule and also see what the proof state will look like for specific subcases.
+
+
+
+The cases for the axioms \rlnmst{} and \rlnmbmatch{} are proven by one use of \coqtm{constructor} (7 formulas * 2 rules = 14 subcases).
+
+{\small
+$$
+\infer[\coqtm{constructor}]{\fbox{goal sequent}}{}
+$$
+}
+
+Cases for rules with only sequent premises, including those with inner quantification, with the same context as the conclusion have the same proof structure. Note that by \emph{same context}, we include rules modifying the focused formula. The rules in this class are \rlnmsand{}, \rlnmsall{}, \rlnmsalls{}, \rlnmbanda{}, \rlnmbandb{}, \rlnmbimp{}, \rlnmballs{}, and \rlnmbsome{} (7 formulas * 8 rules = 56 subcases). We apply \coqtm{constructor} to the goal sequent which, after any introductions, will give a sequent subgoal for each sequent premise of the rule. To each of the new subgoals we apply the appropriate induction hypothesis, giving new subgoals for each antecedent of each induction hypothesis used. Now all goals can be proven by assumption (hypotheses from the induction principle and induction assumptions).
+
+{\small
+$$
+\infer[\coqtm{constructor}]{\fbox{goal sequent}}{
+	\infer[\coqtm{apply} \; IH]{\Big\{ \fbox{rule sequent premise(s)} \Big\}}{
+	    \infer[\coqtm{assumption}]{\Big\{ \fbox{IH antecedents} \Big\}}{}
+	}
+}
+$$
+}
+
+Only one rule modifies the context of the sequent, \rlnmsimp{} (7 formulas * 1 rule = 7 subcases). The proof of the subcase for this rule is similar to above, but requires the use of another structural rule, \nameref{thm:gr_weakening} (Theorem \ref{thm:gr_weakening}), before the sequent subgoal will match the sequent assumption introduced from the goal.
+
+The remaining four rules have both a non-sequent premise and a sequent premise. Of these, the subcases for \rlnmsbc{}, \rlnmssome{}, and \rlnmball{} have a similar proof structure; apply \coqtm{constructor} to the goal so that the non-sequent premise is provable by assumption, then prove the branch for the sequent premise as above (7 formulas * 3 rules = 21 subcases).
+
+
+{\small
+$$
+\infer[\coqtm{constructor}]{\fbox{goal sequent}}{
+	\infer[\coqtm{assumption}]{\fbox{non-sequent premise}}{}
+	&
+	\infer[\coqtm{apply} \; IH]{\fbox{sequent premise}}{
+	    \infer[\coqtm{assumption}]{\fbox{IH antecedents}}{}
+	}
+}
+$$
+}
+
+The proof of the subcase for \rlnmsinit{} is more complicated due to the form of the non-sequent premise, $D \in \dyncon{}$, which depends on the context in the goal sequent, \seqsl{\atom{A}}. We need more details to analyse the subcases for this rule further.
+
+So 98 of 105 subcases are proven following this outline.
+
+\hfill (end outline)
+
+\hfill \end{proof}
+
+The cut admissibility theorem stated above is a simple corollary of the following theorem (with explicit quantification):
+\begin{align*}
+\forall (\delta : \sltm{oo}), \; & (\forall (c : \sltm{context}) (o : \sltm{oo}), \; \seqsl[c]{o} \rightarrow \\
+& \qquad \forall (\inddyncon{} : \sltm{context}), c = \inddyncon{}, \delta \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+& (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \hybridtm{atm}), \; \bchsl[c]{o}{a} \rightarrow \\
+& \qquad \forall (\inddyncon : \sltm{context}), c = \inddyncon{}, \delta \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{o}{a})
+\end{align*}
+%We are explicit with quantification and slightly modify the cut rule to allow the necessary inductions. In particular, we need the form 
+%\begin{multline}
+%(\forall \; (\dyncon{}_0 : \sltm{context})  (\beta : \sltm{oo}),
+%\seqsl[\dyncon{}_0]{\beta} \rightarrow P_1 \; \dyncon{}_0 \; \beta) \; \wedge \\
+%(\forall \; (\dyncon{}_0 : \sltm{context}) (\beta : \sltm{oo}) (\alpha : \sltm{atm}), \\
+%\bchsl[\dyncon{}_0]{\beta}{\alpha} \rightarrow P_2 \; \dyncon{}_0 \; \beta \; \alpha)
+%\label{cutseqbod}
+%\end{multline}
+%with appropriately defined $P_1$ and $P_2$ to perform mutual induction over sequents of the SL.
+
+%Throughout the explanation the proof state will be shown in a manner similar to what is displayed in Coq (*or only CoqIDE?). Unlike Coq, for simplicity we will ignore variables in the context of assumptions at the level of the ambient logic. Other deviations from the formal proof for the purpose of streamlining the presentation will be mentioned as necessary.
+
+\begin{proof}
+
+We begin with an induction over $\delta$, so we are proving $\forall (\delta : \sltm{oo}), P \; \delta$ with $P$ defined as
+\begin{align*}
+& P : \sltm{oo} \rightarrow \hybridtm{Prop} := \lambda (\delta : \sltm{oo}) \; . \\
+& \qquad\qquad (\forall (c : \sltm{context}) (o : \sltm{oo}), \\
+& \qquad\qquad\qquad\qquad\qquad\quad \seqsl[c]{o} \rightarrow P_1 \; c \; o) \; \wedge \\
+& \qquad\qquad (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \hybridtm{atm}), \\
+& \qquad\qquad\qquad\qquad\qquad\quad \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a)
+\end{align*}
+where
+\begin{align*}
+P_1 &: \sltm{context} \rightarrow \sltm{oo} \rightarrow \coqtm{Prop} := \lambda (c : \sltm{context}) (o : \sltm{oo}) \; . \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \seqsl[\inddyncon{}]{o} \\
+P_2 &: \sltm{context} \rightarrow \sltm{oo} \rightarrow \sltm{atm} \rightarrow \coqtm{Prop} := \lambda (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}) \; . \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{o}{a}
+\end{align*}
+$P$, $P_1$, and $P_2$ will provide the induction hypotheses used in this proof. Next is a nested induction, which is a mutual structural induction over \seqsl[c]{o} and \bchsl[c]{o}{a} using $P_1$ and $P_2$ as above.
+
+In the proof presentation here we will only look at cases for the rule \rlnmsinit{}. Later we will see a generalization of the SL and a proof that captures the remaining 98 cases, as well as the proof of \nameref{thm:monotone} (Theorem~\ref{thm:monotone}) seen above. Since in the proof of \nameref{thm:monotone} we have already seen how to prove a few concrete cases in detail using the mutual structural induction principle, it would be tedious to continue to work through more subcases in the same way.
+
+\subsection{Subcase for \rlnmsinit{}: Alternate Proof Attempt}
+
+Before proving this subcase for the nested induction, suppose that rather than an outer induction over the cut formula $\delta$ we had simply introduced this variable into the context of the proof state and begun the proof as a mutual structural induction over the sequent premises with $\delta$ in their context. Then we can wait until it is necessary to have an induction over the cut formula.
+
+The subcase of the induction principle for \rlnmsinit{} from Figure~\ref{fig:seqind} requires a proof of
+\begin{align*}
+\forall (c : \sltm{context}) & (o : \sltm{oo}) (a : \sltm{atm}), \\
+& o \in c \rightarrow \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a \rightarrow P_1 \; c \; \atom{a}
+\end{align*}
+After introductions and unfolding $P_1$ and $P_2$ as defined for this theorem, the proof state is
+\begin{align*}
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{o}{a} \\[\pfshift{}]
+\cline{1-2}
+& \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+Next we make introductions from the goal.
+\begin{align*}
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{o}{a} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_1 &: c = (\inddyncon{}, \delta) \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+Next we substitute $(\inddyncon , \delta)$ for $c$ using $\mathit{IP}_1$ and rename $\inddyncon{}$ to $\dyncon{}_0$ in $\mathit{IHb}_1$ to distinguish the bound variable from the free variable $\inddyncon{}$. Now ignore $\mathit{IP}_1$.
+\begin{align*}
+H_1 &: o \in \inddyncon{} , \delta \\
+\mathit{Hb}_1 &: \bchsl[\inddyncon{} , \delta]{o}{a} \\
+\mathit{IHb}_1 &: \forall ({\dyncon{}_0} : \sltm{context}), (\inddyncon{} , \delta) = (\dyncon{}_0 , \delta) \rightarrow \seqsl[\dyncon{}_0]{\delta} \rightarrow \bchsl[\dyncon{}_0]{o}{a} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+We can get a new premise $P_3 : \bchsl[\inddyncon{}]{o}{a}$ by specializing $\mathit{IHb}_1$ with $\inddyncon{}$, a reflexivity lemma and $\mathit{IP}_2$. Now ignore $\mathit{IHb}_1$ which is no longer needed and $\mathit{Hb}_1$ which we can get from~\nameref{thm:bc_weakening} (Theorem~\ref{thm:bc_weakening}) and $P_3$.
+
+\begin{align*}
+H_1 &: o \in \inddyncon{} , \delta \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\
+P_3 &: \bchsl[\inddyncon{}]{o}{a} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+We can apply the context lemma \sltm{elem\_inv} to $H_1$ to get the premise $(o \in \inddyncon{}) \vee (o = \delta)$. Applying \coqtm{inversion} to this, we have two new subgoals with diverging sets of assumptions. In the second we substitute $\delta$ for $o$ by $H_1$ in that proof state.
+\begin{align*}
+H_1 &: o \in \inddyncon{}  &H_1 &: o = \delta \\
+\inddyncon{} &: \sltm{context} &\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} &\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\
+P_3 &: \bchsl[\inddyncon{}]{o}{a} &P_3 &: \bchsl[\inddyncon{}]{\delta}{a} \\[\pfshift{}]
+\cline{1-5}
+& \seqsl[\inddyncon{}]{\atom{a}}
+&& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+The left subgoal is provable by first applying \rlnmsinit{} to get subgoals $o \in \inddyncon{}$ and \bchsl[\inddyncon{}]{o}{a}, both proven by assumption.
+
+%Notice that $\mathit{IHb}_1$ is the induction hypothesis corresponding to the portion of the cut rule for backchaining sequents. We get this because of the backchaining sequent premise of the \rlnmsinit{} rule. If we had a hypothesis about the goal-reduction portion of this rule, then we could finish this proof as in Figure \ref{fig:hyppf}.
+
+%\begin{figure}
+%$$
+%\infer[\mathit{gr \; cut \; IH}]{\seqsl[\inddyncon{}]{\atom{a_1}}}{
+%	\infer[\coqtm{apply \rlnmsinit{}}]{\seqsl[\inddyncon{} , \delta]{\atom{a_1}}}{
+%		\infer[\coqtm{apply elem\_self}]{\delta \in \inddyncon{} , \delta}{}
+%		&
+%		\infer[\coqtm{assumption}]{\bchsl[\inddyncon{} , \delta]{\delta}{a_1}}{}
+%	}
+%	&
+%	\infer[\coqtm{assumption}]{\seqsl[\inddyncon{}]{\delta}}{}
+%}
+%$$
+%\centering{\caption{Cut Admissibility \rlnmsinit{} Branch with Goal-Reduction Hypothesis} \label{fig:hyppf}}
+%\end{figure}
+
+The proof on the right will be continued with an induction over $\delta$. The property to prove is
+\begin{align*}
+P_0 &: \sltm{oo} \rightarrow \coqtm{Prop} := \lambda (\delta : \sltm{oo}) \; . \\
+& \qquad \forall (\inddyncon{} : \sltm{context}) (a : \sltm{atm}), \\
+& \qquad\qquad \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{\delta}{a} \rightarrow \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+We will now look at a specific subcase of this induction. \\
+
+\paragraph{Subcase $\delta = o_1 \longrightarrow o_2$ :} ~\\
+%\noindent\textbf{Subcase} $\delta = o_1 \longrightarrow o_2$ \textbf{:} ~\\
+
+In this case we prove the appropriate antecedent of the induction principle for induction over $\delta$ (see Figure~\ref{fig:ooip}), shown below.
+$$
+\forall (o_1 \; o_2 : \sltm{oo}), P_0 \; o_1 \rightarrow P_0 \; o_2 \rightarrow P_0 \; (o_1 \longrightarrow o_2)
+$$
+The expanded proof state after premise introductions is:\\
+
+\begin{align*}
+\mathit{IH}_1 &: \forall (\inddyncon{} : \sltm{context}) (a : \sltm{atm}), \seqsl[\inddyncon{}]{o_1} \rightarrow \bchsl[\inddyncon{}]{o_1}{a} \rightarrow \seqsl[\inddyncon{}]{\atom{a}} \\
+\mathit{IH}_2 &: \forall (\inddyncon{} : \sltm{context}) (a : \sltm{atm}), \seqsl[\inddyncon{}]{o_2} \rightarrow \bchsl[\inddyncon{}]{o_2}{a} \rightarrow \seqsl[\inddyncon{}]{\atom{a}} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{(o_1 \longrightarrow o_2)} \\
+P_3 &: \bchsl[\inddyncon{}]{o_1 \longrightarrow o_2}{a} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+
+We can apply \coqtm{inversion} to the premises $\mathit{IP}_2$ and $P_3$ to get new assumptions in the context.
+\begin{align*}
+\mathit{IH}_1 &: \forall (\inddyncon{} : \sltm{context}) (a : \sltm{atm}), \seqsl[\inddyncon{}]{o_1} \rightarrow \bchsl[\inddyncon{}]{o_1}{a} \rightarrow \seqsl[\inddyncon{}]{\atom{a}} \\
+\mathit{IH}_2 &: \forall (\inddyncon{} : \sltm{context}) (a : \sltm{atm}), \seqsl[\inddyncon{}]{o_2} \rightarrow \bchsl[\inddyncon{}]{o_2}{a} \rightarrow \seqsl[\inddyncon{}]{\atom{a}} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}, o_1]{o_2} \\
+P_{3_1} &: \bchsl[\inddyncon{}]{o_2}{a} \\
+P_{3_2} &: \seqsl[\inddyncon{}]{o_1} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+$\mathit{IH}_1$ is not useful here, since we have no way to prove sequents with $o_1$ focused. Applying $\mathit{IH}_2$ and ignoring induction hypotheses, we have:
+\begin{align*}
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}, o_1]{o_2} \\
+P_{3_1} &: \bchsl[\inddyncon{}]{o_2}{a} \\
+P_{3_2} &: \seqsl[\inddyncon{}]{o_1} \\[\pfshift{}]
+\cline{1-2}
+& (\bchsl[\inddyncon{}, o_2]{o_2}{a}), (\seqsl[\inddyncon{}]{o_2}), (\bchsl[\inddyncon{}]{o_2}{a}) 
+\end{align*}
+The first subgoal is proven using~\nameref{thm:bc_weakening} (Theorem~\ref{thm:bc_weakening}) and assumption $P_{3_1}$, and the third subgoal by $P_{3_1}$.
+
+On trying to prove the second subgoal, we should reflect on two things. First, proving \seqsl[\inddyncon{}]{o_2} from the assumptions $\mathit{IP}_2$ and $P_{3_2}$ would be a use of the goal-reduction cut rule. Second, we are proving the subcase corresponding to the \rlnmsinit{} rule and the only sequent premise of this rule is a backchaining sequent; we only get the backchaining part of the cut rule in the induction hypothesis. To illustrate this, recall that for this subcase we have $\bchsl[c]{o}{a}$ and the induction hypothesis $P_2 \; c \; o \; a$ in the context of assumptions. The induction hypothesis expands to
+$$
+\forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{o}{a}
+$$
+Combining these assumptions we have
+$$
+\bchsl[\inddyncon{} , \delta]{o}{a} \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{o}{a}
+$$
+which is the conjunct of the cut rule for backchaining sequents. Combining the above observations, we see that this branch cannot be continued any further. \\
+
+
+
+\subsection{Subcase for \rlnmsinit{}: Original Proof Structure}
+\label{subsec:cutadmissnonseq}
+
+%Recall that before the induction over sequent premises, we had induction over the cut formula \delta. To finish this proof we need to consider the subcases corresponding to the \rlnmsinit{} rule for each form of \delta.
+Convinced of the necessity of our original proof structure, now we will move on with our proof of the cut rule by nested inductions, first on the cut formula $\delta$ then over the sequent premises with $\delta$ in the context.
+Below is a proof of the \rlnmsinit{} subcase where $\delta = o_1 \longrightarrow o_2$. The \rlnmsinit{} subcases for other formula constructions follow similarly.
+%
+\paragraph{Case $\delta = o_1 \; \longrightarrow \; o_2$ :} ~\\
+
+From Figure~\ref{fig:ooip}, the antecedent of the \sltm{oo} induction principle for this case is
+$$
+\forall (o_1 \; o_2 : \sltm{oo}), P \; o_1 \rightarrow P \; o_2 \rightarrow P \; (o_1 \longrightarrow o_2)
+$$
+where $P \; o_1$ and $P \; o_2$ are induction hypotheses and $P$ is as defined at the start of this proof. Expanding the goal (we will wait to expand the premises), the proof state is
+\begin{align*}
+\mathit{IH}_1 &: P \; o_1 \\
+\mathit{IH}_2 &: P \; o_2 \\[\pfshift{}]
+\cline{1-2}
+(\forall & (c : \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow \forall (\inddyncon{} : \sltm{context}), \\
+& \qquad c = (\inddyncon{}, (o_1 \longrightarrow o_2)) \rightarrow \seqsl[\inddyncon{}]{(o_1 \longrightarrow o_2)} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+(\forall & (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow \forall (\inddyncon{} : \sltm{context}), \\
+& \qquad c = (\inddyncon{}, (o_1 \longrightarrow o_2)) \rightarrow \seqsl[\inddyncon{}]{(o_1 \longrightarrow o_2)} \rightarrow \bchsl[\inddyncon{}]{o}{a})
+\end{align*}
+Next we have the mutual induction over sequents. As stated above, we will only show the subcase for the \rlnmsinit{} rule.
+
+\paragraph{Subcase $\vcenter{\rlsinit{}}$ :} ~\\
+
+\bigskip
+
+The goal for this subcase is
+$$
+\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), o \in c \rightarrow \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a \rightarrow P_1 \; c \; \atom{a}
+$$
+After introductions, the proof state is
+\begin{align*}
+\mathit{IH}_1 &: P \; o_1 \\
+\mathit{IH}_2 &: P \; o_2 \\
+H_1 &: o \in c \\
+\mathit{Hb}_1 &: \bchsl[c]{o}{a} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{} , o_1 \longrightarrow o_2) \rightarrow \seqsl[\inddyncon{}]{(o_1 \longrightarrow o_2)} \rightarrow \bchsl[\inddyncon{}]{o}{a} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_1 &: c = \inddyncon{} , o_1 \longrightarrow o_2 \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{o_1 \longrightarrow o_2} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+Next substitute $(\inddyncon{} , o_1 \longrightarrow o_2)$ for $c$ using $\mathit{IP}_1$ and rename $\inddyncon{}$ to $\dyncon{}_0$ in $\mathit{IHb}_1$ to distinguish the bound variable from the free variable $\inddyncon{}$. Now ignore $\mathit{IP}_1$.
+\begin{align*}
+\mathit{IH}_1 &: P \; o_1 \\
+\mathit{IH}_2 &: P \; o_2 \\
+H_1 &: o \in (\inddyncon{} , o_1 \longrightarrow o_2) \\
+\mathit{Hb}_1 &: \bchsl[\inddyncon{} , o_1 \longrightarrow o_2]{o}{a} \\
+\mathit{IHb}_1 &: \forall (\dyncon{}_0 : \sltm{context}), \\
+& \qquad (\inddyncon{} , o_1 \longrightarrow o_2) = (\dyncon{}_0 , o_1 \longrightarrow o_2) \rightarrow \seqsl[\dyncon{}_0]{(o_1 \longrightarrow o_2)} \rightarrow \bchsl[\dyncon{}_0]{o}{a} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{o_1 \longrightarrow o_2} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+We can specialize $\mathit{IHb}_1$ with $\inddyncon{}$, a reflexivity lemma and $\mathit{IP}_2$ to get the new premise $P_3 : \bchsl[\inddyncon{}]{o}{a}$ and apply~\nameref{lem:elem_inv} (Lemma~\ref{lem:elem_inv}) to $H_1$ to get $(o \in \inddyncon{}) \vee (o = o_1 \longrightarrow o_2)$. Now ignore $\mathit{IHb}_1$ and $\mathit{Hb}_1$ (we can get the latter from assumption $P_3$ and~\nameref{thm:bc_weakening}, Theorem~\ref{thm:bc_weakening}).
+
+\newpage
+
+\vspace{-20pt}
+
+\begin{align*}
+\mathit{IH}_1 &: P \; o_1 \\
+\mathit{IH}_2 &: P \; o_2 \\
+H_1 &: (o \in \inddyncon{}) \vee (o = o_1 \longrightarrow o_2) \\
+%\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{o_1 \longrightarrow o_2} \\
+P_3 &: \bchsl[\inddyncon{}]{o}{a} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+Inverting $H_1$, we get two new subgoals with different sets of assumptions. In the second we substitute $o_1 \longrightarrow o_2$ for $o$ using $H_1$ in that proof state.
+\begin{align*}
+\mathit{IH}_1 &: P \; o_1  & IH_1 &: P \; o_1 \\
+\mathit{IH}_2 &: P \; o_2  & IH_2 &: P \; o_2 \\
+H_1 &: o \in \inddyncon{}  & H_1 &: o = o_1 \longrightarrow o_2 \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{o_1 \longrightarrow o_2}  &\mathit{IP}_2 &: \seqsl[\inddyncon{}]{o_1 \longrightarrow o_2} \\
+P_3 &: \bchsl[\inddyncon{}]{o}{a}  & P_3 &: \bchsl[\inddyncon{}]{o_1 \longrightarrow o_2}{a} \\[\pfshift{}]
+\cline{1-4}
+& \seqsl[\inddyncon{}]{\atom{a}} &&\seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+To prove the first, we apply \rlnmsinit{} to the goal, then need to prove $o \in \inddyncon{}$ and \bchsl[\inddyncon{}]{o}{a} which are both provable by assumption.
+
+For the second (right) subgoal, it will be necessary to apply \coqtm{inversion} to some assumptions to get structurally simpler assumptions, before being able to apply the induction hypotheses $\mathit{IH}_1$ and $\mathit{IH}_2$.
+% Also, applying either of $\mathit{IH}_1$ or $\mathit{IH}_2$ to the goal will give two subgoals. So it will simplify the proof to do all inversions on the structure of assumptions before using induction hypotheses.
+Inverting $\mathit{IP}_2$ and $P_3$, and unfolding $P$, we have:
+\begin{align*}
+\mathit{IH}_1 &: (\forall (c : \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_1) \rightarrow \seqsl[\inddyncon{}]{o_1} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+& \;\;\; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_1) \rightarrow \seqsl[\inddyncon{}]{o_1} \rightarrow \bchsl[\inddyncon{}]{o}{a}) \\
+\mathit{IH}_2 &: (\forall (c : \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_2) \rightarrow \seqsl[\inddyncon{}]{o_2} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+& \;\;\; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_2) \rightarrow \seqsl[\inddyncon{}]{o_2} \rightarrow \bchsl[\inddyncon{}]{o}{a}) \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{} , o_1]{o_2} \\
+P_{3_1} &: \seqsl[\inddyncon{}]{o_1} \\
+P_{3_2} &: \bchsl[\inddyncon{}]{o_2}{a} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a}}
+\end{align*}
+Backchaining on the first conjunct of $\mathit{IH}_2$, instantiating $c$ with $(\inddyncon{} , o_2)$, gives three new subgoals.
+\begin{align*}
+\mathit{IH}_1 &: (\forall (c : \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_1) \rightarrow \seqsl[\inddyncon{}]{o_1} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+& \;\;\; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_1) \rightarrow \seqsl[\inddyncon{}]{o_1} \rightarrow \bchsl[\inddyncon{}]{o}{a}) \\
+\mathit{IH}_2 &: (\forall (c : \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_2) \rightarrow \seqsl[\inddyncon{}]{o_2} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+& \;\;\; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_2) \rightarrow \seqsl[\inddyncon{}]{o_2} \rightarrow \bchsl[\inddyncon{}]{o}{a}) \\
+P_{3_1} &: \seqsl[\inddyncon{}]{o_1} \\
+P_{3_2} &: \bchsl[\inddyncon{}]{o_2}{a} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{} , o_1]{o_2} \\[\pfshift{}]
+\cline{1-2}
+& (\seqsl[\inddyncon{} , o_2]{\atom{a}}), (\inddyncon{} , o_2 = \inddyncon{} , o_2), (\seqsl[\inddyncon{}]{o_2})
+\end{align*}
+For the first, apply \rlnmsinit{}, then we need to prove $o_2 \in (\inddyncon{} , o_2)$ (proven by~\nameref{lem:elem_self}, Lemma~\ref{lem:elem_self}) and \bchsl[\inddyncon{} , o_2]{o_2}{a} (proven by~\nameref{thm:bc_weakening}, Theorem~\ref{thm:bc_weakening}, and assumption $P_{3_2}$). The second is proven by \coqtm{reflexivity}. For the third, we backchain on the first conjunct of $\mathit{IH}_1$, instantiating $c$ with $(\inddyncon{} , o_1)$, and get three new subgoals.
+\begin{align*}
+\mathit{IH}_1 &: (\forall (c : \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_1) \rightarrow \seqsl[\inddyncon{}]{o_1} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+& \;\;\; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_1) \rightarrow \seqsl[\inddyncon{}]{o_1} \rightarrow \bchsl[\inddyncon{}]{o}{a}) \\
+\mathit{IH}_2 &: (\forall (c : \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_2) \rightarrow \seqsl[\inddyncon{}]{o_2} \rightarrow \seqsl[\inddyncon{}]{o}) \; \wedge \\
+& \;\;\; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow \\
+& \qquad\qquad \forall (\inddyncon{} : \sltm{context}), c = (\inddyncon{}, o_2) \rightarrow \seqsl[\inddyncon{}]{o_2} \rightarrow \bchsl[\inddyncon{}]{o}{a}) \\
+P_{3_1} &: \seqsl[\inddyncon{}]{o_1} \\
+P_{3_2} &: \bchsl[\inddyncon{}]{o_2}{a} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{} , o_1]{o_2} \\[\pfshift{}]
+\cline{1-2}
+& (\seqsl[\inddyncon{} , o_1]{o_2}), (\inddyncon{} , o_1 = \inddyncon{} , o_1), (\seqsl[\inddyncon{}]{o_1})
+\end{align*}
+The sequent subgoals are proven by \coqtm{assumption} and the other by \coqtm{reflexivity}. \\
+
+The \rlnmsinit{} subcases for the remaining six constructors of \sltm{oo} follow a similar argument requiring \sltm{inversion} on hypotheses and induction hypothesis specialization. \\
+
+\bigskip
+
+From this presentation we can see that working through the details for every case can be a tedious and repetitive task. We later see a generalization that helps us to understand what subcases have the same structure and separate out the challenging cases. This understanding leads us to a condensed automated Coq proof for~\nameref{thm:monotone} (Theorem~\ref{thm:monotone}, see Figure~\ref{fig:coqpfmonotone}) and proofs of 98 of 105 subcases in the proof of~\nameref{thm:cut_admissible} (Theorem~\ref{thm:cut_admissible}, see Figure~\ref{fig:coqpfcutadmiss} where \sltm{delta} is the cut formula in the implementation, in place of \delta).
+\begin{figure}
+\begin{lstlisting}
+Proof.
+Hint Resolve context_sub_sup.
+eapply seq_mutind; intros;
+try (econstructor; eauto; eassumption).
+Qed.
+\end{lstlisting}
+\centering{\caption{Coq proof of~\nameref{thm:monotone} (Theorem~\ref{thm:monotone}) \label{fig:coqpfmonotone}}}
+\end{figure}
+
+\begin{figure}
+\begin{lstlisting}
+Proof.
+Hint Resolve gr_weakening context_swap.
+induction delta; eapply seq_mutind; intros;
+subst; try (econstructor; eauto; eassumption).
+...
+\end{lstlisting}
+\centering{\caption{Coq proof of 98/105 cases of~\nameref{thm:cut_admissible} (Theorem~\ref{thm:cut_admissible}) \label{fig:coqpfcutadmiss}}}
+\end{figure}

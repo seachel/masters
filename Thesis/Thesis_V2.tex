@@ -1,0 +1,147 @@
+\documentclass{report}[12pt]
+
+\title{Thesis - Draft 2}
+\author{Chelsea Battell \\ 7899250}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% PACKAGES
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{a4wide}
+%\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{stmaryrd}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+%\usepackage{fullpage}
+\usepackage{proof}
+%\usepackage{mathtools}
+\usepackage{lscape}
+%\usepackage{rotating}
+\usepackage{xcolor,colortbl}
+
+\usepackage{cite}
+\usepackage{url}
+
+%\mathchardef\mhyphen="2D % Define a "math hyphen"
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% COLOURS
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% cmyk 0 to 1
+% hsl 0 to 1?
+
+% \definecolor{Name}{cmyk}{0.2,0.2,0,0}
+\usepackage{color}
+%\definecolor{Lavender}{cmyk}{0.2,0.2,0,0}
+\definecolor{Lavender}{HTML}{CCCCFF}
+%\definecolor{Lavender}{cmyk}{0.21,0.21,0,0}
+\definecolor{Darkpurple}{cmyk}{0.5,0.5,0,0.6}
+%\definecolor{Medpurple}{cmyk}{0.39,0.39,0,0.54}
+\definecolor{Medpurple}{cmyk}{0.4,0.4,0,0.48}
+\definecolor{Brightpurple}{cmyk}{0.9,0.9,0,0}
+%\definecolor{Forestgreen}{cmyk}{0.76,0,0.76,0.62}
+\definecolor{Forestgreen}{HTML}{176117}
+\definecolor{Forestgreenlt}{cmyk}{0.46,0,0.46,0.5}
+\definecolor{Mint}{HTML}{B2FFB2}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% FONTS
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage[no-math]{fontspec}
+%\newfontface\name{Font_Name}
+%\newfontface\ftelet{Cutive Mono}
+
+\input{formatting}
+
+\begin{document}
+
+TODO:
+\begin{itemize}
+ \item formatting for thesis document shape
+\end{itemize}
+
+Questions:
+\begin{itemize}
+ \item page layout for thesis?
+ \item contributions
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OVERVIEW
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Overview}
+
+The goal of this research is to increase the reasoning abilities of an existing system that is intended to help mechanize programming language metatheory. This system is called Hybrid and is part of the research program carried out by the Software Correctness and Safety Research Laboratory at the University of Ottawa under the supervision of Professor Amy Felty. Hybrid uses the technique of higher-order abstract syntax and an intermediate reasoning layer to make the proofs of programming language theorems more efficient.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BACKGROUND
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Background}
+
+To understand the research described here, it is necessary to first ensure some concepts and the basics of Hybrid are understood.
+
+% HOAS BACKGROUND
+
+\input{background_hoas}
+
+
+% COQ BACKGROUND
+
+\input{background_coq}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HYBRID
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{hybrid}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Specification Logic
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{sl}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Induction and Abstraction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Induction and Abstraction}
+$\langle \hspace{-2pt} [ thing )\!] thing ( \hspace{-3.5pt} \langle$
+\input{structind}
+
+\input{sl_generalized}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{structrules}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{cutadmiss}
+
+
+
+\chapter{Related and Future Work}
+
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{Thesis}
+
+\end{document}

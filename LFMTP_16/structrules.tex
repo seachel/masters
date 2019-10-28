@@ -1,0 +1,109 @@
+\section{Structural Rules}
+\label{sec:structrules}
+
+For our intuitionistic SL we prove the standard structural rules of weakening, contraction, and exchange:
+\begin{thm}[\sltm{weakening}]
+$$
+\vcenter{\infer{\seqsl[\dyncon{} \, , \beta_1]{\beta_2}}{\seqsl{\beta_2}}} \; \wedge \; \vcenter{\infer{\bchsl[\dyncon{} \, , \beta_1]{\beta_2}{\alpha}}{\bchsl{\beta_2}{\alpha}}}
+$$
+\end{thm}
+
+\begin{thm}[\sltm{contraction}]
+$$
+\vcenter{\infer{\seqsl[\dyncon{} \, , \beta_1]{\beta_2}}{\seqsl[\dyncon{} \, , \, \beta_1 \, , \beta_1]{\beta_2}}} \; \wedge \; \vcenter{\infer{\bchsl[\dyncon{} \, , \, \beta_1]{\beta_2}{\alpha}}{\bchsl[\dyncon{} \, , \, \beta_1 \, , \, \beta_1]{\beta_2}{\alpha}}}
+$$
+\end{thm}
+
+\begin{thm}[\sltm{exchange}]
+$$
+\vcenter{\infer{\seqsl[\dyncon{} \, , \beta_1 \, , \, \beta_2]{\beta_3}}{\seqsl[\dyncon{} \, , \, \beta_2 \, , \, \beta_1]{\beta_3}}} \; \wedge \; \vcenter{\infer{\bchsl[\dyncon{} \, , \, \beta_1 \, , \, \beta_2]{\beta_3}{\alpha}}{\bchsl[\dyncon{} \, , \, \beta_2 \, , \, \beta_1]{\beta_3}{\alpha}}}
+$$
+\end{thm}
+
+\noindent These are all corollaries of a general theorem:
+
+\begin{theorem}[\sltm{monotone}]
+$$
+\vcenter{\infer{\seqsl[\inddyncon{}]{\beta}}{\dyncon{} \subseteq \inddyncon{} & \seqsl[\dyncon{}]{\beta}}} \; \wedge \; \vcenter{\infer{\bchsl[\inddyncon{}]{\beta}{\alpha}}{\dyncon{} \subseteq \inddyncon{} & \bchsl[\dyncon{}]{\beta}{\alpha}}}
+$$
+\label{thm:monotone}
+\end{theorem}
+
+The proofs of all of these theorems are automated in the Coq implementation.
+Here, we continue our explanation using our generalized proof states.
+
+\begin{proof}
+
+Theorem~\ref{thm:monotone} is proven by mutual structural induction over the premises \seqsl{\beta} and \bchsl{\beta}{\alpha}. Defining $P_1$ and $P_2$ as
+\begin{align*}
+P_1 :=& \lambda \; (c : \sltm{context}) (o : \sltm{oo}) \; . \\
+& \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \underline{\seqsl[\inddyncon{}]{o}} \\
+P_2 :=& \lambda \; (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}) \; . \\
+& \forall \; (\inddyncon{} : \sltm{context}), c \subseteq \inddyncon{} \rightarrow \underline{\bchsl[\inddyncon{}]{o}{a}}
+\end{align*}
+we are proving
+\begin{align*}
+& (\forall \; (c : \sltm{context}) \; (o : \sltm{oo}), (\seqsl[c]{o}) \rightarrow (P_1 \; c \; o)) \;\; \wedge \\
+& (\forall \; (c : \sltm{context}) \; (o : \sltm{oo}) \; (a : \sltm{atm}), (\bchsl[c]{o}{a}) \rightarrow (P_2 \; c \; o \; a))
+\end{align*}
+which has the form discussed in Section~\ref{sec:induction},
+so the mutual structural induction principle may be used.
+
+
+%\begin{align*}
+%P_1 :=& \lambda \; (\dyncon{}_1 : \sltm{context}) \; . \; \lambda \; (\beta : \sltm{oo}) \; . \\
+%& \forall \; (\dyncon{}_2 : \sltm{context}), \dyncon{}_1 \subseteq \dyncon{}_2 \rightarrow \seqsl[\dyncon{}_2]{\beta} \\
+%P_2 :=& \lambda \; (\dyncon{}_1 : \sltm{context}) \; . \; \lambda \; (\beta : \sltm{oo}) \; . \; \lambda \; (\alpha : \sltm{atm}) \; . \\
+%& \forall \; (\dyncon{}_2 : \sltm{context}), \dyncon{}_1 \subseteq \dyncon{}_2 \rightarrow \bchsl[\dyncon{}_2]{\beta}{\alpha}
+%\end{align*}
+%we are proving
+%\begin{align*}
+%&(\forall \; (\dyncon{}_1 : \sltm{context}) \; (\beta : \sltm{oo}), \\
+%&\;\;\;\;\; (\seqsl[\dyncon{}_1]{\beta}) \rightarrow (P_1 \; \dyncon{}_1 \; \beta)) \\
+%\wedge \; & (\forall \; (\dyncon{}_1 : \sltm{context}) \; (\beta : \sltm{oo}) \; (\alpha : \sltm{atm}), \\
+%&\;\;\;\;\; (\bchsl[\dyncon{_1}]{\beta}{\alpha}) \rightarrow (P_2 \; \dyncon{} \; \beta \; \alpha))
+%\end{align*}
+
+\subsection{Generalized SL Part II: The Structural Rules Hold}
+\label{subsec:structpf}
+
+We build on the inductive proof in Section \ref{sec:pfgsl} over the GSL. Recall that when we took the proof as far as we could; we had three remaining groups of branches to finish ($m + n + p$ subgoals), one group for rules with non-sequent premises depending on the context of the rule conclusion, and one for each kind of sequent premise (see Figures \ref{fig:premgrseq} and \ref{fig:incpfdyn}). We will continue this effort below, using the $P_1$ and $P_2$ defined for this theorem. This means we will have one induction assumption (i.e., $w = 1$) which is $\mathit{IA}_1 \args{c , o , \inddyncon{}} \coloneqq c \subseteq \inddyncon{}$.
+
+
+\subsubsection{Subproofs for Sequent Premises}
+
+First we will prove the subgoals coming from the sequent premises, building on Figure \ref{fig:premgrseq} and using $\mathit{IA}_1$ as defined above. The proof state for goal-reduction (resp. backchaining) premises is
+\begin{align*}
+\ol{H_m} &: \ol{Q_m} \args{c , o} \\
+\ol{\mathit{Hg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}})} \\
+\ol{\mathit{IHg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})} (\inddyncon{} : \sltm{context}), \\
+& \qquad (c \cup \ol{\gamma_n} \args{o}) \subseteq \inddyncon{} \rightarrow \seqsl[\inddyncon{}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}} \\
+\ol{\mathit{Hb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}}) \\
+\ol{\mathit{IHb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})} (\inddyncon{} : \sltm{context}), \\
+& \qquad (c \cup \ol{\gamma'_p} \args{o}) \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}} \\
+\mathit{IP}_1 &: c \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+(c \cup \ol{\gamma_n} \args{o}) & \subseteq (\inddyncon{} \cup \ol{\gamma_n} \args{o}) \; (\mathit{resp.} \; (c \cup \ol{\gamma'_p} \args{o}) \subseteq (\inddyncon{} \cup \ol{\gamma'_p} \args{o}))
+\end{align*}
+The goal is provable by context lemma \sltm{context\_sub\_sup} and assumption $\mathit{IP}_1$.
+
+
+\subsubsection{Subproofs for Non-Sequent Premises}
+
+Still to be proven are the subgoals for non-sequent premises. As seen in Subsection \ref{subsec:subpfnonseq}, the only rule of the SL whose corresponding subcase still needs to be proven is \rlnmsinit{}. From Figure \ref{fig:incpfdyn} and using $P_1$ and $P_2$ as defined here, we are proving
+\begin{align*}
+H_1 &: D \in \dyncon{} \\
+\mathit{Hb}_1 &: \bchsl{D}{a_1} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), \dyncon{} \subseteq \inddyncon{} \rightarrow \bchsl[\inddyncon{}]{D}{a_1} \\
+\mathit{IP}_1 &: \dyncon{} \subseteq \inddyncon{} \\[\pfshift{}]
+\cline{1-2}
+& D \in \inddyncon{}
+\end{align*}
+Unfolding the definition of context subset in $\mathit{IP}_1$ it becomes $\forall (o : \sltm{oo}), o \in \dyncon{} \rightarrow o \in \inddyncon{}$. 
+%Applying this to the goal
+Backchaining on this form of the goal
+gives $D \in \dyncon{}$, provable by assumption $H_1$.
+
+
+In Section \ref{sec:pfgsl}, we explored how to prove statements about the GSL for a restricted form of theorem statement. There were three classes of incomplete proof branches that had a final form shown in Figures \ref{fig:premgrseq} and \ref{fig:incpfdyn}. In Section \ref{subsec:sltogsl} we saw how to derive the SL from the GSL. So here we have proven a structural theorem for the rules of the GSL in a general way that can be followed for any SL rule.
+\end{proof}

@@ -1,0 +1,211 @@
+The logic of hereditary Harrop formulas is foundational in the theory of logic programming languages. Although these formulas have their origins in encoding search behaviour and extending the power of logic programming languages in a semantically clear way, we make use of them in this thesis for their role in restricting the structure of proofs. Using such a restricted logic as a specification logic in Hybrid simplifies SL metatheory proofs and proofs about object logics.
+
+Section~\ref{sec:hohh} will introduce the language of higher-order hereditary Harrop formulas and an inference system for reasoning about them. Following this, in Section~\ref{sec:focusing} we will see how to modify this logic to one with \emph{focusing}, which helps to optimize proof search as will be described later.
+
+\section{Higher-Order Hereditary Harrop Formulas}
+\label{sec:hohh}
+
+The terms of the logic defined here are the terms of the simply-typed $\lambda$-calculus. Types are built from the primitive types and the (right-associative) function arrow $\rightarrow$ as usual. We introduce a type $o$ for formulas. Logical connectives and quantifiers are introduced as constants with their corresponding types as in \cite{Church40}. For example, conjunction has type $o \rightarrow o \rightarrow o$ and the quantifiers have type $(\tau\rightarrow o)\rightarrow o$, with some restrictions on $\tau$ described below. Predicates are function symbols whose target type is $o$. Following \cite{LProlog}, the grammars below for $G$ (goals) and $D$ (clauses) define the formulas of the higher-order hereditary Harrop language.
+
+\begin{defnc}[Higher-Order Hereditary Harrop Formulas]
+Formulas built from the grammar for $G$ are called $G$-formulas and formulas build from the grammar for $D$ are called $D$-formulas or \emph{higher-order hereditary Harrop formulas}\index{higher-order hereditary Harrop formulas}.
+\end{defnc}
+
+\begin{align*}
+G & ::=
+ \top \mathrel{|}
+ A \mathrel{|}
+ G\mathrel{\&}G \mathrel{|}
+ G \lor G \mathrel{|}
+ D\longrightarrow G \mathrel{|}
+ \forall_\tau x. G \mathrel{|}
+ \exists_\tau x. G
+\\
+% \mbox{\textit{Clauses}} &
+D & ::=
+ A \mathrel{|}
+ G\longrightarrow D \mathrel{|}
+ D \mathrel{\&} D \mathrel{|}
+ \forall_\tau x. D
+\end{align*}
+
+We use the metavariable $A$ (possibly with subscripts) for atoms and write $\&$ for conjunction, $\longrightarrow$ for (right-associative) implication, and $\vee$ for disjunction. For universal and existential quantification, written as usual with symbols $\forall$ and $\exists$, we include the subscript $\tau$ to explicitly state the domain of quantification. This may be left out when it can be inferred from context. In goal formulas, we restrict $\tau$ to be a primitive type not containing $o$. In clauses, $\tau$ also cannot contain $o$, and is either primitive or has the form $\tau_1\rightarrow\tau_2$ where both $\tau_1$ and $\tau_2$ are primitive types.
+
+With the language of formulas defined, we can now consider an inference system for reasoning about these formulas. This is a sequent calculus with the same conventions as described for \coc{} in Section~\ref{sec:coctype}. A grammar for contexts of these sequents is below. Contexts here are lists of hereditary Harrop formulas.
+$$
+%\mbox{\textit{Context}} &
+\Gamma ::= [ \, ] \mathrel{|} \Gamma,D
+$$
+
+The rules for this logic are in Figure~\ref{fig:hohhform}. We use the same naming conventions as in the grammars of this chapter and also use $x$ for bound variables, $c$ for fresh variables, and $t$ for terms. %If we don't know if a formula is a goal or a clause, then we will write $B$, possibly with subscripts.
+
+{
+\renewcommand{\arraystretch}{3.5}
+\newcommand{\hhinit}{\infer[\rl{init}]{\seq{A}}{A \in \dyncon{}}}
+\newcommand{\hhtop}{\infer[\rl{$\top_R$}]{\seq{\top}}{}}
+\newcommand{\hhandl}{\infer[\rl{$\&_L$}]{\seq[\dyncon{} , D_1 \& D_2]{G}}{\seq[\dyncon{} , D_1 , D_2]{G}}}
+\newcommand{\hhandr}{\infer[\rl{$\&_R$}]{\seq{G_1 \& G_2}}{\seq{G_1} & \seq{G_2}}}
+\newcommand{\hhorl}{\infer[\rl{$\vee_L$}]{\seq[\dyncon{} , D_1 \vee D_2]{G}}{\seq[\dyncon{} , D_1]{G} & \seq[\dyncon{} , D_2]{G}}}
+\newcommand{\hhorr}{\infer[\rl{$\vee_{R_i}$}]{\seq{G_1 \vee G_2}}{\seq{G_i}}}
+\newcommand{\hhimpl}{\infer[\rl{$\longrightarrow_L$}]{\seq[\dyncon{} , G_1 \longrightarrow D]{G_2}}{\seq{G_1} & \seq[\dyncon{} , D]{G_2}}}
+\newcommand{\hhimpr}{\infer[\rl{$\longrightarrow_R$}]{\seq{D \longrightarrow G}}{\seq[\dyncon{} , D]{G}}}
+\newcommand{\hhalll}{\infer[\rl{$\forall_L$}]{\seq[\dyncon{} , \forall_\tau x, D]{G}}{\seq[\dyncon{} , D\{ x / t\}]{G}}}
+\newcommand{\hhallr}{\infer[\rl{$\forall_R$}]{\seq{\forall_\tau x , G}}{\seq{G \{ x / c \}}}}
+\newcommand{\hhexl}{\infer[\rl{$\exists_L$}]{\seq[\dyncon{} , \exists_\tau x , D]{G}}{\seq[\dyncon{} , D \{ x / c \}]{G}}}
+\newcommand{\hhexr}{\infer[\rl{$\exists_R$}]{\seq{\exists_\tau x , G}}{\seq{G \{ x / t \}}}}
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{c c}
+\hhinit{} & \hhtop{} \\
+\hhandl{} & \hhandr{} \\
+\hhorl{} & \hhorr{} \\
+\hhimpl{} & \hhimpr{} \\
+\hhalll{} & \hhallr{} \\
+\hhexl{} & \hhexr{}
+\end{tabular}
+\end{center}
+\caption{The logic of higher-order hereditary Harrop formulas \label{fig:hohhform}}
+\end{figure}
+}
+The \rl{init} rule allows a branch of a proof to be completed when an atom $A$ on the right of the sequent is in the context \dyncon{}. The only other way to finish a branch of a proof is with the axiom \rl{$\top$} when the consequent of a sequent is $\top$. The remaining rules are standard left and right introduction rules for formulas built from the grammars for $G$ and $D$. In the rule \rl{$\vee_{R_i}$}, $i \in \{ 1 , 2\}$.
+
+Notice that all sequents have only one formula on the right of the sequent (as was also the case in the rules of \coc{} in Chapter~\ref{ch:coq}). A derivation tree built using a set of rules with this property is called \textbf{M}-proofs to say that it is a proof in minimal logic (it is also an \textbf{I}-proof since it will also hold in intuitionistic logic, see~\cite{mnps:uniformproofs}).
+
+This logic has both left and right rules for each logical connective. In the course of a proof, a proof writer may have multiple decisions on how to proceed. This nondeterminism is not desirable if our goal is to automate proof search, which is the case for logic programming.
+
+\begin{expl}[Hereditary Harrop Derivations]
+\label{expl:hh}
+Consider the sequent \seq[\forall_{\tau} x , (A_1 \; x) \& (A_2 \; x)]{(A_1 \; t) \& (A_2 \; t)} where $t : \tau$. Below are two derivation trees for this sequent:
+
+$$
+\infer[\rl{$\forall_L$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]{(A_1 \; t) \& (A_2 \; t)}}{
+	\infer[\rl{$\&_R$}]{\seq[(A_1 \; t) \& (A_2 \; t)]{(A_1 \; t) \& (A_2 \; t)}}{
+		\infer[\rl{$\&_L$}]{\seq[(A_1 \; t) \& (A_2 \; t)]{A_1 \; t}}{
+			\infer[\rl{init}]{\seq[A_1 \; t , A_2 \; t]{A_1 \; t}}{A_1 \; t \in A_1 \; t , A_2 \; t}
+		}
+		&
+		\infer[\rl{$\&_L$}]{\seq[(A_1 \; t) \& (A_2 \; t)]{A_2 \; t}}{
+			\infer[\rl{init}]{\seq[A_1 \; t , A_2 \; t]{A_2 \; t}}{A_2 \; t \in A_1 \; t , A_2 \; t}
+		}
+	}
+}
+$$
+In this first derivation, we alternate between uses of left and right rules until all leaves that are sequents with the goal on the right contained in the context.
+
+$$
+\infer[\rl{$\&_R$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]{(A_1 \; t) \& (A_2 \; t)}}{
+	\infer[\rl{$\forall_L$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]{A_1 \; t}}{
+		\infer[\rl{$\&_L$}]{\seq[(A_1 \; t) \& (A_2 \; t)]{A_1 \; t}}{
+			\infer[\rl{init}]{\seq[A_1 \; t , A_2 \; t]{A_1 \; t}}{A_1 \; t \in A_1 \; t , A_2 \; t}
+		}
+	}
+	&
+	\infer[\rl{$\forall_L$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]{A_2 \; t}}{
+		\infer[\rl{$\&_L$}]{\seq[(A_1 \; t) \& (A_2 \; t)]{A_2 \; t}}{
+			\infer[\rl{init}]{\seq[A_1 \; t , A_2 \; t]{A_2 \; t}}{A_2 \; t \in A_1 \; t , A_2 \; t}
+		}
+	}
+}
+$$
+In this second derivation, beginning at the root we first use as many right rules as necessary to only have atoms on the right side of sequents. Then we apply left rules until we finish the proof as above. This derivation is an example of a \emph{uniform proof}.
+\end{expl}
+
+\begin{defnc}[Uniform Proof]
+A \emph{uniform proof}\index{uniform proof} is an \textbf{I}-proof where every sequent in the derivation tree that is non-atomic on the right is derived from the right introduction rule (e.g. $\&_R$, $\forall_R$, etc.) of its top-level connective.
+\end{defnc}
+
+We can see that the first derivation above is \emph{not} a uniform proof, because the rule \rl{$\forall_L$} is used to derive a sequent that does not have an atom on the right. If we wish to allow only uniform proofs, then this does not restrict what is provable by the logic of Figure~\ref{fig:hohhform}. The set of uniform proofs using rules in Figure~\ref{fig:hohhform} in a restricted manner is sound and complete with respect to the set of proofs that can be built using the same rules without this restriction.
+
+Uniform proofs can be generalized to the notion of \emph{focusing} as presented in~\cite{LM:TCS09} and~\cite{Chaudhuri:LNCS08}, where the logic presented above is viewed as the negative fragment of intuitionistic logic.
+
+\section{Focusing}
+\label{sec:focusing}
+\index{focusing}
+
+A proof search strategy that reduces nondeterminism will make it easier to add automation to proof search. Here we describe a strategy that divides proof search into two stages by augmenting the inference system in a way that reduces the number of rule choices available at each step.
+
+The idea is, in a bottom-up proof, we apply the appropriate right-rule for the top-level connective of the consequent of the sequent until the consequent is atomic. At this point we will transition to using left rules on a formula from the context; we choose a single formula from the context and apply left rules on this formula until this ``focused'' formula is atomic. If it matches the atom on the right of the sequent, the branch is complete, otherwise the proof fails and we return to the point where a formula from the context was focused.
+
+{
+\renewcommand{\arraystretch}{3.5}
+\newcommand{\hhinit}{\infer[\rl{init}]{\seq{A}}{A \in \dyncon{}}}
+\newcommand{\hhtop}{\infer[\rl{$\top_R$}]{\seq{\top}}{}}
+\newcommand{\hhfocus}{\infer[\rl{focus}]{\seq{A}}{\seq[\dyncon{} ; {[D]}]{A} & D \in \dyncon{}}}
+\newcommand{\hhmatch}{\infer[\rl{match}]{\seq[\dyncon{} ; {[A]}]{A}}}
+\newcommand{\hhandl}{\infer[\rl{$\&_{L_i}$}]{\seq[\dyncon{} , {[D_1 \& D_2]}]{A}}{\seq[\dyncon{} , {[D_i]}]{A}}}
+\newcommand{\hhandr}{\infer[\rl{$\&_R$}]{\seq{G_1 \& G_2}}{\seq{G_1} & \seq{G_2}}}
+\newcommand{\hhorl}{\infer[\rl{$\vee_L$}]{\seq[\dyncon{} , {[D_1 \vee D_2]}]{A}}{\seq[\dyncon{} , {[D_1]}]{A} & \seq[\dyncon{} , {[D_2]}]{A}}}
+\newcommand{\hhorr}{\infer[\rl{$\vee_{R_i}$}]{\seq{G_1 \vee G_2}}{\seq{G_i}}}
+\newcommand{\hhimpl}{\infer[\rl{$\longrightarrow_L$}]{\seq[\dyncon{} , {[G \longrightarrow D]}]{A}}{\seq{G} & \seq[\dyncon{} , {[D]}]{A}}}
+\newcommand{\hhimpr}{\infer[\rl{$\longrightarrow_R$}]{\seq{D \longrightarrow G}}{\seq[\dyncon{} , D]{G}}}
+\newcommand{\hhalll}{\infer[\rl{$\forall_L$}]{\seq[\dyncon{} , {[\forall_\tau x, D]}]{A}}{\seq[\dyncon{} , {[D\{ x / t\}]}]{A}}}
+\newcommand{\hhallr}{\infer[\rl{$\forall_R$}]{\seq{\forall_\tau x , G}}{\seq{G \{ x / c \}}}}
+\newcommand{\hhexl}{\infer[\rl{$\exists_L$}]{\seq[\dyncon{} , {[\exists_\tau x , D]}]{A}}{\seq[\dyncon{} , {[D \{ x / c \}]}]{A}}}
+\newcommand{\hhexr}{\infer[\rl{$\exists_R$}]{\seq{\exists_\tau x , G}}{\seq{G \{ x / t \}}}}
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{c c}
+\hhfocus{} & \hhinit{} \\
+\hhmatch{} & \hhtop{} \\
+\hhandl{} & \hhandr{} \\
+\hhorl{} & \hhorr{} \\
+\hhimpl{} & \hhimpr{} \\
+\hhalll{} & \hhallr{} \\
+\hhexl{} & \hhexr{}
+\end{tabular}
+\end{center}
+\caption{The logic of higher-order hereditary Harrop formulas with focusing \label{fig:hohhfoc}}
+\end{figure}
+}
+
+To accomplish this, the logic of Figure~\ref{fig:hohhform} is extended to that in Figure~\ref{fig:hohhfoc}. A sequent $\seq[\dyncon{} ; {[D]}]{A}$ is called a \emph{focused sequent} and we call rules with a focused sequent conclusion \emph{focused rules}. The interpretation is that $D$ is a formula under focus. Here we use the same sequent arrow $\vdash$ for both kinds of sequents. Notice that the consequent of the sequent for all focused rules is an atom. This is because, as stated above, we first apply the right-rules until the right side of the sequent is atomic. Missing from the above description was a method to ensure the left rules are applied to a single element of the context until it too is atomic. This is accomplished with the \rl{hhfocus} rule, which acts as a gateway from the right rules to the focused rules. The focused rules appear to be similar to the left rules in Figure~\ref{fig:hohhform}, but now we are focused on a particular formula and are not able to alternate between the elements in the context that we apply left rules to.
+
+An additional optimization is achieved by requiring the right branch of the \rl{$\longrightarrow_R$} rule (a focused sequent) to be fully explored before the left (unfocused sequent). This way, once we are applying left rules, we continue to do so until we have reached a leaf with sequent \seq[\dyncon{} ; {[A']}]{A}. If $A = A'$, then the branch is completed with \rl{match} and we work on the left (unfocused sequent) branch of the last application of the \rl{$\longrightarrow_R$} rule. Otherwise, the branch cannot be completed and a different choice of formula must be focused at the start of the current sequence of focused rule applications. We will illustrate this by showing how we can write a focused derivation of the sequent in example~\ref{expl:hh}.
+
+\begin{expl}[Hereditary Harrop Focused Derivation]
+This proof is very similar to the second derivation of example~\ref{expl:hh}, but now we use focused rules where there we used left rules and make use of the \rl{focus} and \rl{match} rules. See below for the derivation tree of \seq[\forall x , (A_1 \; x) \& (A_2 \; x)]{(A_1 \; t) \& (A_2 \; t)} using the focused sequent calculus of Figure~\ref{fig:hohhfoc}.
+
+{\scriptsize
+$$
+\infer[\rl{$\&_R$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]{(A_1 \; t) \& (A_2 \; t)}}{
+	\infer[\rl{focus}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]{A_1 \; t}}{
+		\infer[\rl{$\forall_L$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x) ; {[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]}]{A_1 \; t}}{
+			\infer[\rl{$\&_{L_1}$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x) ; {[(A_1 \; t) \& (A_2 \; t)]}]{A_1 \; t}}{
+				\infer[\rl{match}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x) ; {[A_1 \; t]}]{A_1 \; t}}{}
+			}
+		}
+	}
+	&
+	\infer[\rl{focus}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]{A_2 \; t}}{
+		\infer[\rl{$\forall_L$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x) ; {[\forall_\tau x , (A_1 \; x) \& (A_2 \; x)]}]{A_2 \; t}}{
+			\infer[\rl{$\&_{L_2}$}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x) ; {[(A_1 \; t) \& (A_2 \; t)]}]{A_2 \; t}}{
+				\infer[\rl{match}]{\seq[\forall_\tau x , (A_1 \; x) \& (A_2 \; x) ; {[A_2 \; t]}]{A_2 \; t}}{}
+			}
+		}
+	}
+}
+$$
+}
+
+Notice that even though we use the \rl{focus} rule to select a formula from the context to focus and used the focused rules to manipulate it, we still retain the original formula in the context.
+\end{expl}
+
+Another important observation is that proofs using this focused sequent calculus are forced to be uniform proofs, because we cannot freely choose between applying left or right rules; the search strategy forces us to use the rule introducing the top-level connective of the principal formula of the sequent. This logic is also sound and complete with respect to the logic of Figure~\ref{fig:hohhform}. 
+
+In the next chapter we will present a specification logic that is a slight modification of the sequent calculus of Figure~\ref{fig:hohhfoc}. We modify this logic is because there are rules that are unnecessary for our application of hereditary Harrop formulas and focusing. There are also some implementation details built in to the rules presented later, as will be explained in Chapter~\ref{ch:sl}.
+
+%The negative connectives are those that have invertible right rules in Figure~\ref{fig:hohhform}. These connectives are $\&, \longrightarrow$, and $\top$. The positive connectives have invertible left rules, 
+
+
+
+%Maybe some general text about removing redundancies like in Frank's section 2.
+
+
+%- Then present the rules of Frank's section 3, possibly with modifications to fit your syntax and discuss the rules.
+
+
+%- Then present the rules of your logic and note the differences. And say where they came from (a modified version of the logic in the Abella paper, with a restriction on the types that can be quantified over, with extensions to include the full set of hereditary Harrop formulas, which include disjunction and existential quantification).
+
+

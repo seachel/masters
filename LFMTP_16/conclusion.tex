@@ -1,0 +1,95 @@
+\section{Conclusion}
+\label{sec:concl}
+
+We have described the extension of Hybrid to a new more expressive SL,
+and focused on presenting the proofs of important metatheoretic
+properties in a general manner.
+With the metatheory of this SL completed, the next step is to
+illustrate the benefits of the extra expressive power via case
+studies.
+
+In the GSL we have made the rules general enough to capture the rules
+of the SL, but it could be generalized further to explore other
+specification logics that do not fit the restrictions here.  This is a
+subject of future work, as we explore even more expressive SLs.
+
+There are a variety of other systems supporting HOAS, such as Beluga
+\cite{Pientka:IJCAR10} and Twelf \cite{TwelfSP}, to name just two.
+These two systems, along with Abella and Hybrid were compared on
+several benchmark problems in \cite{FMP:JAR15}.  Hybrid and Abella are
+similar in the sense that they are based on a proof-theoretic
+foundation and follow the two-level approach, implementing an SL
+inside a logic or type theory, while Twelf and Beluga are built on
+type-theoretic foundations.
+
+Our formulation of sequent rules uses the style developed in
+\cite{Pfenning:IC00}, where the cut rule incorporates aspects of
+weakening and contraction, facilitating the kind of structural
+induction argument used both there and here.  One main difference in
+the approaches is the representation of inference rules.  In that
+paper, the proofs are formalized in Elf (an early version of Twelf)
+where rules are generally expressed in a natural deduction style with
+implicit contexts.  In contrast, we represent and reason about
+contexts directly, and consequently illustrate that doing so is not as
+difficult as is argued in \cite{Pfenning:IC00}.\footnote{See
+  \cite{FMP:JAR15} for a fuller comparison of these two approaches to
+  reasoning.}
+
+The proof of cut admissibility in Abella uses the same overall
+structure with induction on the cut formula, with a sub-induction on
+the structure of the proof of the left premise of the cut rule.  A
+detailed analysis of the differences in the proofs is left as future
+work.  We do note, however, that the statement of the two theorems
+differs.  The Abella version requires the following additional
+conjunct:
+$$\forall (c : \sltm{context}) (o : \sltm{oo}) (a: \hybridtm{atm}),\\
+\seqsl[c]{o} \rightarrow \bchsl[c]{o}{a} \rightarrow \seqsl[c]{\atom{a}}.$$
+
+There are also some differences in the rules.  Our logic includes
+existential quantification, while the Abella version does not.  Also,
+without loss of generality, our $\rlnmsbc$ rule restricts static
+program clauses to have the form
+$\forall_{\tau_1}\ldots\forall_{\tau_n}.G\longrightarrow A$.  Finally,
+we restrict universal quantification to second-order, while the Abella
+version does not.  This does not affect the proofs of metatheorems,
+and we don't expect it to significantly limit the kinds of OLs we can
+consider.  For example, the two case studies in \cite{WCGN:PPDP13} do
+not require more than second-order quantification in the SL.
+
+As mentioned, implementing Hybrid in Coq gives us access to Coq's
+extensive standard library and other facilities.  Having such access
+allows us, for example, to simplify the encoding of the example
+discussed in Section~\ref{sec:hybrid} in two ways.  First, in general,
+when an OL's syntax can be directly encoded using a first-order
+representation, we can define it directly as a Coq inductive type
+instead of as a set of terms of type \oltm{expr}.  For example, we
+could remove the three definitions for \oltm{dApp}, \oltm{dAbs}, and
+\oltm{dVar} and the constants they depend on, and instead define an
+type \oltm{dtm} with three constructors.
+%the following inductive type:
+%\begin{lstlisting}
+%Inductive dtm : Set :=
+%  dVar : nat -> dtm
+%| dApp : dtm -> dtm -> dtm
+%| dAbs : dtm -> dtm.
+%\end{lstlisting}
+Second, we can use Coq's library for natural numbers, which allows for
+a simpler definition of the \oltm{hodb} inference rules (mentioned but
+not shown earlier).
+
+The development of the metatheory of the SL in this paper differs from
+other Hybrid SLs, in particular, those that appear in
+\cite{FeltyMomigliano:JAR10}.  In the definition of those SLs,
+sequents had an additional natural number argument, and metatheoretic
+properties were proved by induction over the height of a proof, rather
+than by a direct structural induction on the definition of (the two
+kinds of) sequents, as is done here.  Future work includes exploring
+the connections between these two kinds of induction in the context of
+the SL in this paper, as well as comparing their use in proving
+properties of OLs.
+
+%A detailed analysis of the different proofs of cut elimination within
+%Hybrid and with others is another area of future work.  Others include
+%the proof in Abella mentioned above.  In addition, the proof in
+%\cite{Pfenning:IC00} uses an additional inner sub-induction on the
+%premise not containing the cut formula.

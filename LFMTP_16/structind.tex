@@ -1,0 +1,74 @@
+\section{Mutual Structural Induction}
+\label{sec:induction}
+
+%
+%This means that there will be a subcase for each rule/constructor, and every rule with a goal-reduction premise will have an induction hypothesis and every rule with a backchaining premise will have an induction hypothesis (two when both are present). \\
+%
+%Suppose the goal is to prove
+Our theorem statements will often have the form
+\begin{align*}
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}), (\seqsl[c]{o}) \rightarrow (P_1 \; c \; o)) \;\; \wedge \\
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}) \; (a : \sltm{atm}), (\bchsl[c]{o}{a}) \rightarrow (P_2 \; c \; o \; a))
+\end{align*}
+where we extract predicates $P_1 :$ \sltm{context} $\rightarrow$ \sltm{oo} $\rightarrow$ \coqtm{Prop} and $P_2 :$ \sltm{context} $\rightarrow$ \sltm{oo} $\rightarrow$ \sltm{atm} $\rightarrow$ \coqtm{Prop} from the statement to be proven. We can generate an induction principle over the mutually inductive sequent types to allow proof by mutual structural induction. This is done using the Coq \coqtm{Scheme} command.
+
+To prove a statement of the above form by mutual structural induction over \seqsl[c]{o} and \bchsl[c]{o}{a}, 15 subcases must be proven, one corresponding to each inference rule of the SL. The proof state of each subcase of this induction is constructed from an inference rule of the system.
+%as follows (where there is fresh quantification over all parameters):
+%
+We can see a snippet of the sequent mutual induction principle in Figure~\ref{fig:seqind}, where each antecedent (clause of the induction principle defining the cases) corresponds to a rule of the SL and a subcase for an induction using this technique. 
+After applying the induction principle, the subcases are generated and
+externally quantified variables in each antecedent are introduced to the context of assumptions of the proof state and are then considered \emph{signature variables}.
+\begin{figure}%[h]
+%\vspace{-20pt}
+\begin{align*}
+& \sltm{seq\_mutind} : \forall (P_1 : \sltm{context} \rightarrow \sltm{oo} \rightarrow \coqtm{Prop}) \\
+& \qquad\qquad\qquad (P_2 : \sltm{context} \rightarrow \sltm{oo} \rightarrow \sltm{atm} \rightarrow \coqtm{Prop}), \\
+% g_dyn:
+& (* \rlnmsinit{} *) \quad (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\qquad\qquad o \in c \rightarrow \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a \rightarrow P_1 \; c \; \atom{a}) \rightarrow \\
+% g_all:
+& (* \rlnmsall{} *) \quad (\forall (c : \sltm{context}) (o : \sltm{expr con} \rightarrow \sltm{oo}), \\
+& \qquad\qquad\qquad (\forall (e : \sltm{expr con}), \hybridtm{proper} \; e \rightarrow \seqsl[c]{o \; e} \rightarrow \\
+& \qquad\qquad\qquad (\forall (e : \sltm{expr con}), \hybridtm{proper} \; e \rightarrow P_1 \; c \; (o \; e) \rightarrow \\
+& \qquad\qquad\qquad P_1 \; c \; (\sltm{All} \; o)) \rightarrow \\
+% b_imp:
+& (* \rlnmbimp{} *) \quad (\forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\qquad\qquad \seqsl[c]{o_1} \rightarrow P_1 \; c \; o_1 \rightarrow \bchsl[c]{o_2}{a} \rightarrow P_2 \; c \; o_2 \; a \rightarrow \\
+& \qquad\qquad\qquad P_2 \; c \; (o_1 \longrightarrow o_2) \; a)   \rightarrow \\
+& \quad \cdots\\
+& \quad (\forall (c : \; \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow P_1 \; c \; o) \; \wedge \\
+& \quad (\forall (c : \; \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a)
+\end{align*}
+\centering{\caption{Sequent Mutual Induction Principle Snippet \label{fig:seqind}}}
+%\vspace{-20pt}
+\end{figure}
+
+This induction principle is automatically generated following the description shown below, with examples from the figure given in each point.
+\begin{itemize}
+ \item Non-sequent premises are assumptions of the induction subcase (e.g. $o \in c$ from the \rlnmsinit{} rule).
+ \item For every rule premise that is a goal-reduction sequent (with possible local quantifiers) of the form $\forall (x_1 : T_1) \cdots (x_n : T_n), \seqsl{\beta}$ where $n \geq 0$, the induction subcase has assumptions ($\forall (x_1 : T_1) \cdots (x_n : T_n), \seqsl{\beta}$) and ($\forall (x_1 : T_1) \cdots (x_n : T_n), P_1 \; \dyncon{} \; \beta$) (e.g. $\forall (e : \sltm{expr con}), \sltm{proper} \; e \rightarrow \seqsl[c]{o \; e}$ and $\forall (e : \sltm{expr con}), \sltm{proper} \; e \rightarrow P_1 \; c \; (o \; e)$ from the \rlnmsall{} rule with $n = 2$ and unabbreviated prefix $\forall (e : \sltm{expr con}) (H : \sltm{proper} \; e)$).
+ \item For every rule premise that is a backchaining sequent (with possible local quantifiers) of the form $\forall (x_1 : T_1) \cdots (x_n : T_n), \bchsl{\beta}{\alpha}$ where $n \geq 0$, the induction subcase has assumptions ($\forall (x_1 : T_1) \cdots (x_n : T_n), \bchsl{\beta}{\alpha}$) and ($\forall (x_1 : T_1) \cdots (x_n : T_n), P_2 \; \dyncon{} \; \beta \; \alpha$) (e.g. $\bchsl[c]{o_2}{a}$ and $(P_2 \; c \; o_2 \; a)$ from the \rlnmbimp{} rule).
+ \item If the rule conclusion is a goal-reduction sequent of the form \seqsl{\beta}, then the subcase goal is $P_1 \; \dyncon{} \; \beta$ (e.g. $(P_1 \; c \; \atom{a})$ from the \rlnmsinit{} rule). 
+ \item If the rule conclusion is a backchaining sequent of the form \bchsl{\beta}{\alpha}, then the subcase goal is $P_2 \; \dyncon{} \; \beta \; \alpha$ (e.g. $(P_2 \; c \; (o_1 \longrightarrow o_2) \; a)$ from the \rlnmbimp{} rule).
+\end{itemize}
+Implicit in these last two points is the possible introduction of more assumptions, in the case when $P_1$ and $P_2$ are dependent products themselves (i.e. 
+contain quantification and/or implication).
+We will refer to assumptions introduced this way as \emph{induction assumptions} in future proofs, since they are from a predicate that is used to construct induction hypotheses. That is, assumptions of the form $(P_1 \; \dyncon{} \; \beta)$ or $(P_2 \; \dyncon{} \; \beta \; \alpha)$ are induction hypotheses for any proof subcase for a rule with premises \seqsl{\beta} or \bchsl{\beta}{\alpha}. In this SL, exactly two cases of this induction principle have more than one induction hypothesis (\rlnmbimp{} and \rlnmsand{}).
+
+%Given specific $P_1$ and $P_2$, if we are trying to prove $(\forall (c
+%: \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow P_1 \; c
+%\; o) \; \wedge \; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a :
+%\sltm{atm}), \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a)$,
+In describing proofs, we will follow the Coq style and write the proof state in a vertical format with the assumptions above a horizontal line and the goal below it. For example, the \rlnmsinit{} subcase will have the following form:
+\begin{align*}
+H_1 &: o \in c \\
+H_2 &: \bchsl[c]{o}{a} \\
+\mathit{IH} &: P_2 \; c \; o \; a \\[\pfshift{}]
+\cline{1-2}
+&P_1 \; c \; \atom{a}
+\end{align*}
+As in Coq, we provide hypothesis names (so that we can refer to them as needed). Also, we often omit the type declarations of signature variables, in this case $c : \sltm{context}, o:\sltm{oo},$ and $a : \sltm{atm}$, when they can be easily inferred from context. Unlike in Coq, when we have multiple subcases to prove with the same context of assumptions we will write them all under the horizontal line in the same proof state, separated by commas.
+
+
+%At a higher-level of abstraction, we note that all rules of the SL
+%have one of the two following forms:

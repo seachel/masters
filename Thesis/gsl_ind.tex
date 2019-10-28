@@ -1,0 +1,193 @@
+\section{GSL Induction Part I: A Restricted Theorem}
+\label{sec:gsl}
+
+Recall from Chapter~\ref{ch:slind} that when proving SL metatheory, we were concerned with proving statements of the form
+\begin{align*}
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}), \\
+& (\seqsl[c]{o}) \rightarrow (P_1 \; c \; o)) \;\; \wedge \\
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}) \; (a : \sltm{atm}), \\
+& (\bchsl[c]{o}{a}) \rightarrow (P_2 \; c \; o \; a))
+\end{align*}
+
+In the GSL we now have two rules instead of the 15 of the SL. To prove this statement by mutual structural induction over the GSL we will have two subcases; one for each of the rules \rl{gr\_rule} and \rl{bc\_rule}. From the rule \rl{gr\_rule} (resp. \rl{bc\_rule}) the induction subcase has $n$ induction hypotheses for the $n$ goal-reduction sequent premises and $p$ induction hypotheses for the $p$ backchaining sequent premises of the rule. We also assume the $m$ non-sequent premises. After introductions, the proof state is:
+\begin{align*}
+\ol{H_m} &: \ol{Q_m} \args{c , o} \\
+\ol{\mathit{Hg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}})} \\
+\ol{\mathit{IHg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, P_1 \; (c \cup \ol{\gamma_n} \args{o}) \; (\ol{F_n} \args{o , \ol{x_{n,s_n}}}) \\
+\ol{\mathit{Hb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}}) \\
+\ol{\mathit{IHb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, P_2 \; (c \cup \ol{\gamma'_p} \args{o}) \; (\ol{F'_p} \args{o , \ol{y_{p,t_p}}}) \; \ol{a_p} \\[\pfshift{}]
+\cline{1-2}
+& P_1 \; c \; o \; (\mathit{resp.} \; P_2 \; c \; o \; a)
+\end{align*}
+
+Given specific $P_1$ and $P_2$, we could unfold uses of these predicates and continue the proof.
+%We will consider a restricted version of this abstraction that is sufficient for the SL and its metatheory presented here. For $j = 1 \ldots n$ and $k = 1 \ldots p$, we restrict $C_j \args{c,o}$ and $C'_k \args{c,o}$ to have the form $c \cup (\gamma_j \args{c,o})$ and $c \cup (\gamma'_k \args{c,o})$, respectively. So we require the conclusion context to be a subset of the premise contexts. This is satisfied by the rules of our implemented SL. In fact, we will have $\gamma_j \args{c,o} = \gamma'_k \args{c,o} = \emptyset$ for all rules other than \rlnmsimp{} where $j = 1$ and $\gamma_1 \args{\dyncon{} , (D \longrightarrow G)} = \{ D \}$. (*idea: build this restriction into the GSL rules, comment that could be generalized further, remove this paragraph? OR might just remove this restriction since it doesn't add much here)
+Suppose
+\begin{align*}
+P_1 &:= \lambda (c : \sltm{context}) \; (o : \sltm{oo}) . \\
+& \qquad \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{c,\inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c,\inddyncon{}} \rightarrow \underline{\seqsl[\inddyncon{}]{o}} \qquad \mathrm{and}\\
+P_2 &:= \lambda (c : \sltm{context}) \; (o : \sltm{oo}) \; (a : \sltm{atm}) . \\
+& \qquad \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{c,\inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c,\inddyncon{}} \rightarrow \underline{\bchsl[\inddyncon{}]{o}{a}}
+\end{align*}
+Each $\mathit{IA}_i$ is a predicate that we call an \emph{induction assumption}\index{induction assumption}. $P_1$ and $P_2$ can be instantiated to specific statements about the GSL by defining these $\mathit{IA}_i$. Notice that this is a generalization of all induction predicates we have seen so far. The underlining of sequents in the definitions of $P_1$ and $P_2$ is to highlight that these are the sequents we apply the generalized rules to (following introductions).
+
+First we unfold uses of $P_1$ and $P_2$ in the proof state.
+\begin{align*}
+\ol{H_m} &: \ol{Q_m} \args{c , o} \\
+\ol{\mathit{Hg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}})} \\
+\ol{\mathit{IHg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \seqsl[\inddyncon{}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}} \\
+\ol{\mathit{Hb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}}) \\
+\ol{\mathit{IHb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \bchsl[\inddyncon{}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}} \\[\pfshift{}]
+\cline{1-2}
+& \qquad \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{c,\inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c,\inddyncon{}} \rightarrow \underline{\seqsl[\inddyncon{}]{o}} \\
+& (\mathit{resp.} \; \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{c,\inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c,\inddyncon{}} \rightarrow \underline{\bchsl[\inddyncon{}]{o}{a}})
+\end{align*}
+
+
+Next we introduce the variables and induction assumptions. Then the goal is either \seqsl[\inddyncon{}]{o} or \bchsl[\inddyncon{}]{o}{a}. Apply \rl{gr\_rule} or \rl{bc\_rule} as appropriate, and either will give ($m + n + p$) new subgoals which come from the three premise forms in these rules, with appropriate instantiations for the externally quantified variables.
+\begin{figure}
+\begin{align*}
+\ol{H_m} &: \ol{Q_m} \args{c , o} \\
+\ol{\mathit{Hg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}})} \\
+\ol{\mathit{IHg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \seqsl[\inddyncon{}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}} \\
+\ol{\mathit{Hb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}}) \\
+\ol{\mathit{IHb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \bchsl[\inddyncon{}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{c , \inddyncon{}} \\[\pfshift{}]
+\cline{1-2}
+& \ol{Q_m} \args{\inddyncon{} , o}, \\
+& \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[\inddyncon{} \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}}), \\
+& \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[\inddyncon{} \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}})
+\end{align*}
+\centering{\caption{Proof state of GSL induction after rule application \label{fig:gslruleapp}}}
+\end{figure}
+$\inddyncon{}$ is a new signature variable. See Figure~\ref{fig:gslruleapp} for this proof state.
+
+\subsection{Sequent Subgoals}
+
+To prove the last ($n + p$) subgoals (the ``second'' and ``third'' subgoals in Figure~\ref{fig:gslruleapp}) we first introduce any locally quantified variables as signature variables.
+
+\newpage
+
+\begin{align*}
+\ol{H_m} &: \ol{Q_m} \args{c , o} \\
+\ol{\mathit{Hg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}})} \\
+\ol{\mathit{IHg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \seqsl[\inddyncon{}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}} \\
+\ol{\mathit{Hb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}}) \\
+\ol{\mathit{IHb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \bchsl[\inddyncon{}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{c , \inddyncon{}} \\
+\ol{x_{n,s_n}} &: \ol{R_{n,s_n}} \; (\mathit{resp.} \; \ol{y_{p,t_p}} : \ol{S_{p,t_p}}) \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{} \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}} \;\; (\mathit{resp.} \; \bchsl[\inddyncon{} \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}})
+\end{align*}
+
+For the goal-reduction (resp. backchaining) subgoals, for $j = 1 , \ldots , n$ (resp. $k = 1 , \ldots , p$), we apply induction hypothesis $\mathit{IHg}_j$ (resp. $\mathit{IHb}_k$), instantiating $\inddyncon{}$ in the induction hypothesis with $\inddyncon{} \cup \gamma_j \args{o}$ (resp. $\inddyncon{} \cup \gamma'_k \args{o}$). This yields the proof state in Figure \ref{fig:premgrseq} for goal-reduction premises (resp. backchaining premises).
+
+\begin{figure}
+\begin{align*}
+\ol{H_m} &: \ol{Q_m} \args{c , o} \\
+\ol{\mathit{Hg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}})} \\
+\ol{\mathit{IHg}_n} &: \forall \ol{(x_{n,s_n} : R_{n,s_n})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{}} \rightarrow \seqsl[\inddyncon{}]{\ol{F_n} \args{o , \ol{x_{n,s_n}}}} \\
+\ol{\mathit{Hb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}}) \\
+\ol{\mathit{IHb}_p} &: \forall \ol{(y_{p,t_p} : S_{p,t_p})} (\inddyncon{} : \sltm{context}), \\
+& \qquad \mathit{IA}_1 \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{}} \rightarrow \bchsl[\inddyncon{}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{c , \inddyncon{}} \\
+\ol{x_{n,s_n}} &: \ol{R_{n,s_n}} \; (\mathit{resp.} \; \ol{y_{p,t_p}} : \ol{S_{p,t_p}}) \\[\pfshift{}]
+\cline{1-2}
+& \ol{\mathit{IA}_w} \args{c \cup \ol{\gamma_n} \args{o} , \inddyncon{} \cup \ol{\gamma_n} \args{o}} \;\; (\mathit{resp.} \; \ol{\mathit{IA}_w} \args{c \cup \ol{\gamma'_p} \args{o} , \inddyncon{} \cup \ol{\gamma'_p} \args{o}})
+\end{align*}
+\centering{\caption{Incomplete proof branches for sequent premises \label{fig:premgrseq}}}
+\end{figure}
+
+The proof state in Figure~\ref{fig:premgrseq} will be continued for specific theorem statements which will have the induction assumptions defined.
+
+\subsection{Non-Sequent Subgoals}
+\label{subsec:subpfnonseq}
+
+The proof of the first $m$ subgoals in Figure~\ref{fig:gslruleapp} depends on the definition of $Q_i$ for $i = 1 \ldots m$. If the first argument (a \sltm{context}) is not used in its definition, then $Q_i \args{\inddyncon{} , o}$ is provable by assumption $H_i$ since we will have $Q_i \args{\inddyncon{} , o} = Q_i \args{c , o}$. Any other dependencies on signature variables can be ignored since we can instantiate the variables as we choose when backchaining over the generalized rule. We will illustrate this by considering each rule with non-sequent premises, starting from the proof state in Figure~\ref{fig:gslruleapp} and, for $(i = 1 , \ldots , m)$, $(j = 1 , \ldots , n)$, $(k = 1 , \ldots , p)$, show how to define $Q_i$, $\gamma_j$, $F_j$, $\gamma'_k$, and $F'_k$ and finish the subproofs where possible.
+
+There are four rules of the SL with non-sequent premises: \rlnmsbc{}, \rlnmsinit{}, \rlnmssome{}, and \rlnmball{}.
+
+\paragraph{Case $\vcenter{\rlsbc{}}$ :} ~\\
+
+This rule has one non-sequent premise and one goal-reduction sequent premise with no local quantification, so $m = n = 1$, $p = 0$, $s_1 = 0$, $o = \atom{A}$, and $c = \dyncon{}$. Then we are proving the following:
+\begin{align*}
+H_1 &: Q_1 \args{\dyncon{} , \atom{A}} \\
+\mathit{Hg}_1 &: \seqsl[\dyncon{} \cup \gamma_1 \args{\atom{A}}]{F_1 \args{\atom{A}}} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{\dyncon{} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{\dyncon{} , \inddyncon{}} \rightarrow \seqsl[\inddyncon{}]{F_1 \args{\atom{A}}} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{\dyncon{} , \inddyncon{}} \\[\pfshift{}]
+\cline{1-2}
+& Q_1 \args{\inddyncon{} , \atom{A}}
+\end{align*}
+Define $Q_1 \args{\_ , \atom{A}} \coloneqq \prog{A}{G}$, $\gamma_1 \args{\atom{A}} \coloneqq \emptyset$, and $F_1 \args{\atom{A}} \coloneqq G$, where $G : \sltm{oo}$ is a signature variable. Now the proof state is
+\begin{align*}
+H_1 &: \prog{A}{G} \\
+\mathit{Hg}_1 &: \seqsl{G} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{\dyncon{} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{\dyncon{} , \inddyncon{}} \rightarrow \seqsl[\inddyncon{}]{G} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{\dyncon{} , \inddyncon{}} \\[\pfshift{}]
+\cline{1-2}
+& \prog{A}{G}
+\end{align*}
+which is completed by assumption $H_1$.
+
+\paragraph{Case $\vcenter{\rlsinit{}}$ :} ~\\
+
+This rule has one non-sequent premise and one backchaining sequent premise with no local quantification, so $m = p = 1$, $n = 0$, $c = \dyncon{}$, and $o = \atom{A}$. Define $Q_1 \args{\dyncon{} , \atom{A}} \coloneqq D \in \dyncon{}$, $\gamma'_1 \args{\atom{A}} \coloneqq \emptyset$, and $F'_1 \args{\atom{A}} \coloneqq D$, where $D : \sltm{oo}$ is a signature variable. Then we need to prove what is displayed in Figure \ref{fig:incpfdyn}.
+\begin{figure}
+\begin{align*}
+H_1 &: D \in \dyncon{} \\
+\mathit{Hb}_1 &: \bchsl{D}{a_1} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{\dyncon{} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{\dyncon{} , \inddyncon{}} \rightarrow \bchsl[\inddyncon{}]{D}{a_1} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{\dyncon{} , \inddyncon{}} \\[\pfshift{}]
+\cline{1-2}
+& D \in \inddyncon{}
+\end{align*}
+\centering{\caption{Incomplete proof branch (\rlnmsinit{} case) \label{fig:incpfdyn}}}
+\end{figure}
+Here we do not have enough information to finish this branch of the proof. An induction assumption may be of use, but we will need specific $P_1$ and $P_2$. We will refer to Figure~\ref{fig:incpfdyn} later when proving specific theorem statements (i.e. each $\mathit{IA}_i$ defined).
+
+\paragraph{Case $\vcenter{\rlssome{}}$ :} ~\\
+
+This rule has one non-sequent premise and one goal-reduction sequent premise with no local quantification, so $m = n = 1$, $p = 0$, $c = \dyncon{}$, and $o = \sltm{Some} \; G$. Define $Q_1 \args{\dyncon{} , \sltm{Some} \; G} \coloneqq \sltm{proper} \; E$, $\gamma_1 \args{\sltm{Some} \; G} \coloneqq \emptyset$, and $F_1 \args{\sltm{Some} \; G} \coloneqq G \; E$ where $E : \sltm{expr con}$ is a signature variable. Then we are proving the following:
+\begin{align*}
+H_1 &: \sltm{proper} \; E \\
+\mathit{Hg}_1 &: \seqsl{G \; E} \\
+\mathit{IHg}_1 &: \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{\dyncon{} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{\dyncon{} , \inddyncon{}} \rightarrow \seqsl[\inddyncon{}]{G \; E} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{\dyncon{} , \inddyncon{}} \\[\pfshift{}]
+\cline{1-2}
+& \sltm{proper} \; E
+\end{align*}
+which is completed by assumption $H_1$.
+
+\paragraph{Case $\vcenter{\rlball{}}$ :} ~\\
+
+This case is proven as above but with $m = p = 1$, $n = 0$, $c = \dyncon{}$, and $o = \sltm{All} \; D$. Define $Q_1 \args{\dyncon{} , \sltm{All} \; D
+ } \coloneqq \sltm{proper} \; E$, $\gamma'_1 \args{\sltm{All} \; D} \coloneqq \emptyset$, and $F'_1 \args{\sltm{All} \; D} \coloneqq D \; E$ where $E : \sltm{expr con}$ is a signature variable. Then we are proving:
+\begin{align*}
+H_1 &: \sltm{proper} \; E \\
+\mathit{Hb}_1 &: \bchsl{D \; E}{a_1} \\
+\mathit{IHb}_1 &: \forall (\inddyncon{} : \sltm{context}), \mathit{IA}_1 \args{\dyncon{} , \inddyncon{}} \rightarrow \dots \rightarrow \mathit{IA}_w \args{\dyncon{} , \inddyncon{}} \rightarrow \bchsl[\inddyncon{}]{D \; E}{a_1} \\
+\inddyncon{} &: \sltm{context} \\
+\ol{\mathit{IP}_w} &: \ol{\mathit{IA}_w} \args{\dyncon{} , \inddyncon{}} \\[\pfshift{}]
+\cline{1-2}
+& \sltm{proper} \; E
+\end{align*}
+The goal $\sltm{proper} \; E$ is provable by the assumption of the same form as in the previous case.
+%from the definition of the rule.
+
+\medskip
+
+In the next two sections we will return to this idea of proofs about a specification logic from a generalized form of SL rule to prove properties of the SL once we have fully defined $P_1$ and $P_2$. The proof states in Figures \ref{fig:premgrseq} and \ref{fig:incpfdyn} (the incomplete branches) will be roots of these explanations.

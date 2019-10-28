@@ -1,0 +1,11 @@
+*.vo
+*.glob
+*.aux
+
+*.cls
+*.zip
+.DS_Store
+
+BattellC_Thesis_ElectronicAppendix.html
+revisions.txt
+Errors.txt

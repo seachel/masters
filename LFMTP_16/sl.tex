@@ -1,0 +1,261 @@
+\section{The Specification Logic}
+\label{sec:sl}
+
+%The main contribution to Hybrid presented here has been to add a new specification logic (SL) and prove the necessary structural rules. This SL is an inference system based on higher-order hereditary Harrop formulas. (*motivation, names of people whose research this builds on, etc)
+
+%We follow the presentation in~\cite{WCGN:PPDP13} to define this SL in a similar manner as the SL for Abella that is described there. That is, we distinguish between goal-reduction rules and backchaining rules (see figures~\ref{fig:grseq} and~\ref{fig:bcseq}). Goal-reduction rules are the right-introduction rules and reduce a formula to atomic (bottom-up). Backchaining rules are the left-introduction rules and allow backchaining over a formula focused from the context of assumptions at this reasoning level (bottom-up).
+
+%The rules of this logic are encoded in inductive types for goal-reduction and backchaining sequents. Goal-reduction sequents have signature \sltm{grseq} $:$ \sltm{context} $\rightarrow$ \sltm{oo} $\rightarrow$ \coqtm{Prop} and we write \seqsl{\beta} as notation for \sltm{grseq} $\dyncon{}$ $\beta$. Backchaining sequents have signature \sltm{bcseq} $:$ \sltm{context} $\rightarrow$ \sltm{oo} $\rightarrow$ \sltm{atm} $\rightarrow$ \coqtm{Prop} and we write \bchsl{\beta}{\alpha} as notation for \sltm{bcseq} $\dyncon{}$ $\beta$ $\alpha$, understanding $\beta$ to be a formula from \dyncon{} that we focus.
+
+%Something has been ignored in our classification of the rules so far. The rules \rlnmsbc{} and \rlnmsinit{} are presented with the goal-reduction rules in figure~\ref{fig:grseq}, even though they are not used to reduce a goal any further (the conclusion is atomic in these cases). Also, the rule \rlnmbmatch{} is considered a backchaining rule in figure~\ref{fig:bcseq}. The reason for this comes from how these rules are defined in Coq; a rule whose conclusion is a goal-reduction sequent must be defined in \sltm{grseq} and a rule whose conclusion is a backchaining sequent must be defined in \sltm{bcseq}.
+
+%Since \sltm{grseq} references \sltm{bcseq} in the rule \rlnmsinit{} and \sltm{bcseq} references \sltm{grseq} in the rule \rlnmbimp{}, these are defined as mutually inductive types. Both types have a constructor for each rule that has conclusion of their type. The identifier (*right word?) of the constructor is the rule name, and the premises and conclusion of the rule are premises and conclusion of the constructor's type, respectively (with quantification over the necessary parameters in the type). For example, the definition of \sltm{grseq} has a constructor \rlnmsinit{} of type $\forall (L : \sltm{context}) (G : \sltm{oo}), G \in L \rightarrow \bchsl[L]{G}{A} \rightarrow \seqsl[L]{\atom{A}}$.
+
+%The types \seqsl{\beta} and \bchsl{\beta}{\alpha} are dependent types, where $\dyncon{} : \sltm{context}$, $\beta : \sltm{oo}$, and $\alpha : \sltm{atm}$. Before considering the rules of the logic in detail, the types \sltm{atm}, \sltm{oo}, and \sltm{context} defined and used by the SL need to be explained.
+
+At the specification level, the terms of HH are the terms of the
+simply-typed $\lambda$-calculus. We assume a set of primitive types
+that includes \mltm{expr} as well as the special symbol \sltm{oo} to
+denote formulas.  Types are built from the primitive types and the
+function arrow $\rightarrow$ as usual.  Logical connectives and
+quantifiers are introduced as constants with their corresponding types
+as in \cite{Church40}.  For example, conjunction has type
+$\sltm{oo}\rightarrow \sltm{oo}\rightarrow \sltm{oo}$ and the
+quantifiers have type $(\tau\rightarrow \sltm{oo})\rightarrow
+\sltm{oo}$, with some restrictions on $\tau$ described below.
+Predicates are function symbols whose target type is \sltm{oo}.
+Following \cite{LProlog}, the grammars below for $G$ (goals) and $D$
+(clauses) define the formulas of the logic, while $\Gamma$ describes
+contexts of hypotheses.
+%$$\begin{array}{rrcl}
+%\mbox{\textit{Goals}} &
+$$\begin{array}{rcl}
+G & ::= &
+ \top \mathrel{|}
+ A \mathrel{|}
+ G\mathrel{\&}G \mathrel{|}
+ G \lor G \mathrel{|}
+ D\longrightarrow G \mathrel{|}
+ \forall_\tau x. G \mathrel{|}
+ \exists_\tau x. G
+\\
+% \mbox{\textit{Clauses}} &
+D & ::= &
+ A \mathrel{|}
+ G\longrightarrow D \mathrel{|}
+ D \mathrel{\&} D \mathrel{|}
+ \forall_\tau x. D
+\\
+%\mbox{\textit{Context}} &
+\Gamma & ::= &
+ \emptyset \mathrel{|} \Gamma,D
+\end{array}$$
+In goal formulas, we restrict $\tau$ to be a primitive type not
+containing $\sltm{oo}$.  In clauses, $\tau$ also cannot contain
+$\sltm{oo}$, and is either primitive or has the form
+$\tau_1\rightarrow\tau_2$ where both $\tau_1$ and $\tau_2$ are
+primitive types.
+% When we refer to this logic as higher-order, we mean the
+% implicational complexity.
+We note that there is no restriction on the implicational
+complexity.\footnote{In the second-order SL in
+  \cite{FeltyMomigliano:JAR10}, implication in goals is restricted to
+  the form $A\longrightarrow G$.}
+%
+We follow the presentation in~\cite{WCGN:PPDP13} to define the
+inference rules of HH, using two sequent judgments that distinguish
+between \emph{goal-reduction rules} and \emph{backchaining rules}.
+These sequents have the forms \seqsl{G} and \bchsl{D}{A},
+respectively, where the latter is a left focusing judgment with $D$
+the formula under (left) focus.  In these sequents, there is also an
+implicit fixed context $\Delta$, called the \emph{static program
+  clauses}, containing closed clauses of the form
+$\forall_{\tau_1}\ldots\forall_{\tau_n}.G\longrightarrow A$ with
+$n\ge0$. %\footnote{Any set of clauses can be transformed into an
+%  equivalent set in which all clauses have this form \cite{LProlog}.}
+%
+These clauses represent the inference rules of an OL.
+
+Our encoding of the formulas of the SL in Coq is shown in
+Figure~\ref{fig:oofig}.
+%
+\begin{figure}
+\begin{lstlisting}
+Inductive oo : Type :=
+| atom : atm -> oo
+| T : oo
+| Conj : oo -> oo -> oo
+| Imp : oo -> oo -> oo
+| All : (expr con -> oo) -> oo
+| Allx : (X -> oo) -> oo
+| Some : (expr con -> oo) -> oo.
+\end{lstlisting}
+\centering{\caption{Type of SL Formulas \label{fig:oofig}}}
+\end{figure}
+%
+In this implementation, the type \sltm{atm} is a parameter to the
+definition of \sltm{oo} and is used to define the predicates needed for
+reasoning about a particular OL.  For instance, our above example
+might include a predicate $\oltm{hodb} : (\mltm{expr}~ \mltm{con})
+\rightarrow \coqtm{nat} \rightarrow (\mltm{expr}~ \mltm{con})$
+relating the higher-order and de Bruijn encodings at a given depth.
+The constant \sltm{atom} coerces an atomic formula (a predicate
+applied to its arguments) to an SL formula.  Also, note that in this
+implementation, we restrict the type of universal quantification to
+two types, (\mltm{expr}~ \mltm{con}) and \mltm{X}, where \mltm{X} is a
+parameter that can be instantiated with any primitive type; in our
+running example, \mltm{X} would become \coqtm{nat} for the depth of
+binding in a de Bruijn term.  We also leave out disjunction.  It is
+not difficult to extend our implementation to include disjunction and
+quantification (universal or existential) over other primitive types,
+but these have not been needed in reasoning about OLs.
+
+We write \atom{\alpha}, ($\beta_1$ \& $\beta_2$), and ($\beta_1
+\longrightarrow \beta_2$) as notation for (\sltm{atom} $\alpha$),
+(\sltm{Conj} $\beta_1$ $\beta_2$), and (\sltm{Imp} $\beta_1$
+$\beta_2$), respectively.  Note that we write $\beta$ or $\delta$ for
+formulas (type \sltm{oo}), and $\alpha$ for elements of type
+\sltm{atm}, possibly with subscripts.  When discussing proofs, we also
+write $o$ for formulas and $a$ for atoms.  When we want to make
+explicit when a formula is a goal or clause, we write $G$ or $D$,
+respectively.  Formulas quantified by \sltm{All} are written
+$(\sltm{All}~ \beta)$ or $(\sltm{All}~ \lambda (x:\mltm{expr}~
+\mltm{con}) \; . \; \beta x)$.  The latter is the $\eta$-long form
+with types included explicitly.  The other quantifiers are treated
+similarly.
+
+{
+\renewcommand{\arraystretch}{3.25}
+\newcommand{\GRrlsbc}{\inferH[\rlnmsbc{}]{\seqsl[\Gamma]{\atom{A}}}{\prog{A}{G} & \seqsl[\Gamma]{G}}}
+\newcommand{\GRrlsinit}{\inferH[\rlnmsinit{}]{\seqsl[\Gamma]{\atom{A}}}{D \in \Gamma & \bchsl[\Gamma]{D}{A}}}
+\newcommand{\GRrlst}{\inferH[\rlnmst{}]{\seqsl[\Gamma]{\sltm{T}}}{}}
+\newcommand{\GRrlsand}{\inferH[\rlnmsand{}]{\seqsl[\Gamma]{G_1 \, \& \, G_2}}{\seqsl[\Gamma]{G_1} & \seqsl[\Gamma]{G_2}}}
+\newcommand{\GRrlsimp}{\inferH[\rlnmsimp{}]{\seqsl[\Gamma]{D \longrightarrow G}}{\seqsl[\Gamma \, , \, D]{G}}}
+\newcommand{\GRrlsall}{\inferH[\rlnmsall{}]{\seqsl[\Gamma]{\sltm{All} \; G}}{\forall (E : \hybridtm{expr con}), (\sltm{proper} \; E \rightarrow \seqsl[\Gamma]{G \, E})}}
+\newcommand{\GRrlsalls}{\inferH[\rlnmsalls{}]{\seqsl[\Gamma]{\sltm{Allx} \; G}}{\forall (E : \sltm{X}), (\seqsl[\Gamma]{G \, E})}}
+\newcommand{\GRrlssome}{\inferH[\rlnmssome{}]{\seqsl[\Gamma]{\sltm{Some} \; G}}{\sltm{proper} \; E & \seqsl[\Gamma]{G \, E}}}
+
+\begin{figure}%[h]
+$$
+\begin{tabular}{c c}
+\GRrlsbc{}
+&
+\GRrlsinit{} \\
+%
+\GRrlsand{}
+&
+\GRrlsimp{} \\
+%
+\multicolumn{2}{c}{
+\GRrlst{} \;\;\; \GRrlsall{}
+} \\
+%
+\GRrlsalls{}
+&
+\GRrlssome{} \\
+\end{tabular}
+$$
+\centering{\caption{Goal-Reduction Rules, \sltm{grseq} \label{fig:grseq}}}
+
+\end{figure}
+}
+%
+{
+\renewcommand{\arraystretch}{3.25}
+\newcommand{\BCrlbmatch}{\inferH[\rlnmbmatch{}]{\bchsl[\Gamma]{\atom{A}}{A}}{}}
+\newcommand{\BCrlbanda}{\inferH[\rlnmbanda{}]{\bchsl[\Gamma]{D_1 \, \& \, D_2}{A}}{\bchsl[\Gamma]{D_1}{A}}}
+\newcommand{\BCrlbandb}{\inferH[\rlnmbandb{}]{\bchsl[\Gamma]{D_1 \, \& \, D_2}{A}}{\bchsl[\Gamma]{D_2}{A}}}
+\newcommand{\BCrlbimp}{\inferH[\rlnmbimp{}]{\bchsl[\Gamma]{G \longrightarrow D}{A}}{\seqsl[\Gamma]{G} & \bchsl[\Gamma]{D}{A}}}
+\newcommand{\BCrlball}{\inferH[\rlnmball{}]{\bchsl[\Gamma]{\sltm{All} \; D}{A}}{\sltm{proper} \; E & \bchsl[\Gamma]{D \, E}{A}}}
+\newcommand{\BCrlballs}{\inferH[\rlnmballs{}]{\bchsl[\Gamma]{\sltm{Allx} \; D}{A}}{\bchsl[\Gamma]{D \, E}{A}}}
+\newcommand{\BCrlbsome}{\inferH[\rlnmbsome{}]{\bchsl[\Gamma]{\sltm{Some} \; D}{A}}{\forall (E : \hybridtm{expr con}), (\sltm{proper} \; E \rightarrow \bchsl[\Gamma]{D \, E}{A})}}
+
+\begin{figure}%[h]
+
+$$
+\begin{tabular}{c c}
+\BCrlbmatch{}
+&
+\BCrlbanda{} \\
+%
+\BCrlbandb{}
+&
+\BCrlbimp{} \\
+%
+\BCrlball{}
+&
+\BCrlballs{} \\
+\multicolumn{2}{c}{
+\BCrlbsome{}
+}
+\end{tabular}
+$$
+
+\centering{\caption{Backchaining Rules, \sltm{bcseq} \label{fig:bcseq}}}
+
+\end{figure}
+}
+%
+Figures~\ref{fig:grseq} and~\ref{fig:bcseq} define the inference rules
+of the SL.  They are encoded in Coq as two mutually inductive types,
+one each for goal-reduction and backchaining sequents.  The syntax
+used in the figures is a pretty-printed version of the Coq definition.
+Coq's dependent products are written
+$\forall(x_1:t_1)\cdots(x_n:t_n),M$, where $n\ge0$ and for $i=1,\ldots,
+n$, $x_i$ may appear free in $x_{i+1},\ldots,x_n,M$.  If it doesn't,
+implication can be used as an abbreviation, e.g., the premise of the
+\rlnmsall{} rule is an abbreviation for $\forall (E : \hybridtm{expr
+  con})(H:\sltm{proper} \; E), (\seqsl[\Gamma]{G \, E})$.
+
+Goal-reduction sequents have type $\sltm{grseq} : \sltm{context}
+\rightarrow \sltm{oo} \rightarrow \coqtm{Prop}$, and we write
+$\seqsl{\beta}$ as notation for $\sltm{grseq}~\dyncon{}~
+\beta$. Backchaining sequents have type $\sltm{bcseq} : \sltm{context}
+\rightarrow \sltm{oo} \rightarrow \sltm{atm} \rightarrow \coqtm{Prop}$
+and we write \bchsl{\beta}{\alpha} as notation for $\sltm{bcseq}~
+\dyncon{}~ \beta~ \alpha$, understanding $\beta$ to be the focused
+formula from \dyncon{}. The rule names in the figures are the
+constructor names in the inductive definitions.  The premises and
+conclusion of a rule are the argument types and the target type,
+respectively, of one clause in the definition.  Quantification at the
+outer level is implicit.  Inner quantification is written explicitly
+in the premises.  For example, the linear format of the \rlnmsinit{}
+rule from Figure~\ref{fig:grseq} with all quantifiers explicit is
+$\forall (\Gamma : \sltm{context}) (D : \sltm{oo}) (A :\sltm{atm}),D
+\in \Gamma \rightarrow \bchsl[\Gamma]{D}{A} \rightarrow
+\seqsl[\Gamma]{\atom{A}}$.  This is the type of the \rlnmsinit{}
+constructor in the inductive definition of $\sltm{grseq}$.  (See the
+definition of $\sltm{grseq}$ in the Coq files.)
+
+The type \sltm{context} is used to represent contexts of assumptions
+in sequents and is defined as a Coq \coqtm{ensemble} \sltm{oo} since
+we want contexts to behave as sets. We write ($\dyncon{}, \beta$) as
+notation for ($\sltm{context\_cons} \; \dyncon{} \; \beta$). We write
+write $c$ or $\dyncon{}$ to denote contexts when discussing formalized
+proofs. The following context lemmas will be mentioned in the proofs in this paper:
+\begin{lem}[\sltm{elem\_inv}]
+$\vcenter{\infer{(\mathtt{elem} \; \beta_1 \; \dyncon{}) \vee (\beta_1 = \beta_2)}{\mathtt{elem} \; \beta_1 \; (\dyncon{}, \beta_2)}}$
+\end{lem}
+
+\begin{lem}[\sltm{context\_sub\_sup}]
+$\vcenter{\infer{(\dyncon{}_1 , \beta) \subseteq (\dyncon{}_2 , \beta)}{\dyncon{}_1 \subseteq \dyncon{}_2}}$
+\end{lem}
+We use the \coqtm{ensemble} axiom \coqtm{Ext\-ensionality\_Ensembles} : $\forall (E_1 \; E_2 : \coqtm{ensemble}),(\coqtm{Same\_set} \; E_1 \; E_2) \rightarrow E_1 = E_2$, where \coqtm{Same\_set} is defined in the \coqtm{Ensemble} library, and \coqtm{elem} is \sltm{context} membership.
+
+
+The goal-reduction rules are the right-introduction rules of this sequent calculus. If we consider building a proof bottom-up from the root, these rules ``reduce'' the formula on the right to atomic formulas. The rules \rlnmsbc{} and \rlnmsinit{} are the only goal-reduction rules with an atomic principal formula.
+
+The rule \rlnmsbc{} is used to backchain over the static program clauses $\Delta$, which are defined for each new OL as an inductive type called \sltm{prog} of type $\sltm{atm} \rightarrow \sltm{oo} \rightarrow \coqtm{Prop}$, and represent the inference rules of the OL.  This rule is the interface between the SL and OL layers and we say that the SL is parametric in OL provability. We write \prog{A}{G} for $(\sltm{prog} \; A \; G)$ to suggest backward implication. Recall that clauses in $\Delta$ may have outermost universal quantification. The premise \prog{A}{G} actually represents an instance of a clause in $\Delta$.
+
+The rule \rlnmsinit{} allows backchaining over dynamic assumptions (i.e. a formula from \dyncon{}). To use this rule to prove \seqsl{\atom{A}}, we need to show $D \in \dyncon{}$ and \bchsl{D}{A}. Formula $D$ is chosen from, or shown to be in, the dynamic context \dyncon{} and we use the backchaining rules to show \bchsl{D}{A} (where $D$ is the focused formula).
+
+The backchaining rules are the standard focused left rules for conjunction, implication, and universal and existential quantification. Considered bottom up, they provide backchaining over the focused formula. In using the backchaining rules, each branch is either completed by \rlnmbmatch{} where the focused formula is an atomic formula identical to the goal of the sequent, or \rlnmbimp{} is used resulting in one branch switching back to using goal-reduction rules.
+
+We mention several Coq tactics when presenting proofs. The main one is the \coqtm{constructor} tactic, which applies a clause of an inductive definition in a backward direction (a step of meta-level backchaining), determining automatically which clause to apply.
+%The \coqtm{apply} tactic also does a step of backchaining and takes as
+%argument the name of a definition clause, hypothesis, or lemma.  The
+%\coqtm{assumption} tactic is the ``base case'' for \coqtm{apply},
+%closing the proof when there are no further subgoals.
+
+
+%(*cut?) Note that the rules \rlnmsbc{} and \rlnmsinit{} are presented with the goal-reduction rules in Figure~\ref{fig:grseq}, even though they are not used to reduce a goal any further (the conclusion is atomic in these cases). Also, the rule \rlnmbmatch{} is considered a backchaining rule in Figure~\ref{fig:bcseq}. The reason for this comes from how these rules are defined in Coq; a rule whose conclusion is a goal-reduction sequent must be defined in \sltm{grseq} and a rule whose conclusion is a backchaining sequent must be defined in \sltm{bcseq}.

@@ -1,0 +1,113 @@
+%\subsection{Non-Sequent Subgoals : Alternate Proof Attempt}
+
+In the proof of subgoals from sequent premises, it seems that the outer induction over the cut formula $\delta$ was unnecessary. Here we will consider an alternate proof structure where induction is first over the sequent premises with the cut formula $\delta$ in the context, and wait until it is necessary to have an induction over the cut formula.
+
+Still to be proven are the subgoals for non-sequent premises (see Figure \ref{fig:incpfdyn}). As seen in Section \ref{subsec:subpfnonseq}, the only rule of the SL whose corresponding subcase still needs to be proven is \rlnmsinit{}. Since $\in$ is a primitive definition (*better terminology), and we have no other hypotheses about it here, we will eventually reach a dead end. We will step back in Figure \ref{fig:incpfdyn} to before the rule \rlnmsinit{} was applied and use $P_1$ and $P_2$ as defined here. We are proving
+\begin{align*}
+H_1 &: D \in \dyncon{} \\
+\mathit{Hb}_1 &: \bchsl[\inddyncon{} , \delta]{D}{a_1} \\
+\mathit{IHb}_1 &: \forall ({\inddyncon{}} : \sltm{context}), \dyncon{} = (\inddyncon{} , \delta) \rightarrow \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{D}{\atom{a_1}} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_1 &: \dyncon{} = \inddyncon{} , \delta \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a_1}}
+\end{align*}
+Next we substitute $(\inddyncon , \delta)$ for $\dyncon{}$ using $\mathit{IP}_1$ and rename $\inddyncon{}$ to $\dyncon{}_0$ in $\mathit{IHb}_1$ to distinguish the bound variable from the free variable $\inddyncon{}$. Now ignore $\mathit{IP}_1$.
+\begin{align*}
+H_1 &: D \in \inddyncon{} , \delta \\
+\mathit{Hb}_1 &: \bchsl[\inddyncon{} , \delta]{D}{a_1} \\
+\mathit{IHb}_1 &: \forall ({\dyncon{}_0} : \sltm{context}), (\inddyncon{} , \delta) = (\dyncon{}_0 , \delta) \rightarrow \seqsl[\dyncon{}_0]{\delta} \rightarrow \bchsl[\dyncon{}_0]{D}{\atom{a_1}} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a_1}}
+\end{align*}
+We can get a new premise $P_3 : \bchsl[\inddyncon{}]{\delta}{a_1}$ by backchaining on $\mathit{IHb}_1$ applied to (*TODO: or specialized with?) $\inddyncon{}$, a reflexivity lemma and $\mathit{IP}_2$. Now ignore $\mathit{IHb}_1$ which is no longer needed and $\mathit{Hb}_1$ which we can get from \sltm{weakening} and $P_3$.
+\begin{align*}
+H_1 &: D \in \inddyncon{} , \delta \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\
+P_3 &: \bchsl[\inddyncon{}]{\delta}{a_1} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a_1}}
+\end{align*}
+we can apply the context lemma \sltm{elem\_inv} to $H_1$ to get the premise $(D \in \inddyncon{}) \vee (D = \delta)$. Applying \coqtm{inversion} to this, we have two new subgoals with diverging sets of assumptions. In the second we substitute $\delta$ for $D$ by $H_1$ in that proof state.
+\begin{align*}
+H_1 &: D \in \inddyncon{}  &H_1 &: D = \delta \\
+\inddyncon{} &: \sltm{context} &\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} &\mathit{IP}_2 &: \seqsl[\inddyncon{}]{\delta} \\
+P_3 &: \bchsl[\inddyncon{}]{D}{a_1} &P_3 &: \bchsl[\inddyncon{}]{\delta}{a_1} \\[\pfshift{}]
+\cline{1-5}
+& \seqsl[\inddyncon{}]{\atom{a_1}}
+&& \seqsl[\inddyncon{}]{\atom{a_1}}
+\end{align*}
+The left subgoal is provable by first applying \rlnmsinit{} to get subgoals $D \in \inddyncon{}$ and \bchsl[\inddyncon{}]{D}{a_1}, both proven by assumption.
+
+%Notice that $\mathit{IHb}_1$ is the induction hypothesis corresponding to the portion of the cut rule for backchaining sequents. We get this because of the backchaining sequent premise of the \rlnmsinit{} rule. If we had a hypothesis about the goal-reduction portion of this rule, then we could finish this proof as in Figure \ref{fig:hyppf}.
+
+%\begin{figure}
+%$$
+%\infer[\mathit{gr \; cut \; IH}]{\seqsl[\inddyncon{}]{\atom{a_1}}}{
+%	\infer[\coqtm{apply \rlnmsinit{}}]{\seqsl[\inddyncon{} , \delta]{\atom{a_1}}}{
+%		\infer[\coqtm{apply elem\_self}]{\delta \in \inddyncon{} , \delta}{}
+%		&
+%		\infer[\coqtm{assumption}]{\bchsl[\inddyncon{} , \delta]{\delta}{a_1}}{}
+%	}
+%	&
+%	\infer[\coqtm{assumption}]{\seqsl[\inddyncon{}]{\delta}}{}
+%}
+%$$
+%\centering{\caption{Cut Admissibility \rlnmsinit{} Branch with Goal-Reduction Hypothesis} \label{fig:hyppf}}
+%\end{figure}
+
+The proof on the right will be continued with an induction over $\delta$. The property to prove is
+\begin{align*}
+P_0 &: \sltm{oo} \rightarrow \coqtm{Prop} := \lambda (\delta : \sltm{oo}) \; . \\
+& \qquad \forall (\inddyncon{} : \sltm{context}) (a_1 : \sltm{atm}), \\
+& \qquad\qquad \seqsl[\inddyncon{}]{\delta} \rightarrow \bchsl[\inddyncon{}]{\delta}{a_1} \rightarrow \seqsl[\inddyncon{}]{\atom{a_1}}
+\end{align*}
+We will now look at a specific subcase of this induction.
+
+\paragraph{Subcase $\delta = o_1 \longrightarrow o_2$ :} ~\\
+%\noindent\textbf{Subcase} $\delta = o_1 \longrightarrow o_2$ \textbf{:} ~\\
+
+In this case we prove the appropriate antecedent of the induction principle for induction over $\delta$ (*add figure for induction principle for \sltm{oo}), shown below.
+$$
+\forall (o_1 \; o_2 : \sltm{oo}), P_0 \; o_1 \rightarrow P_0 \; o_2 \rightarrow P_0 \; (o_1 \longrightarrow o_2)
+$$
+The expanded proof state after premise introductions is:
+\begin{align*}
+\mathit{IH}_1 &: \forall (\inddyncon{} : \sltm{context}) (a_1 : \sltm{atm}), \seqsl[\inddyncon{}]{o_1} \rightarrow \bchsl[\inddyncon{}]{o_1}{a_1} \rightarrow \seqsl[\inddyncon{}]{\atom{a_1}} \\
+\mathit{IH}_2 &: \forall (\inddyncon{} : \sltm{context}) (a_1 : \sltm{atm}), \seqsl[\inddyncon{}]{o_2} \rightarrow \bchsl[\inddyncon{}]{o_2}{a_1} \rightarrow \seqsl[\inddyncon{}]{\atom{a_1}} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}]{(o_1 \longrightarrow o_2)} \\
+P_3 &: \bchsl[\inddyncon{}]{o_1 \longrightarrow o_2}{a_1} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a_1}}
+\end{align*}
+
+
+We can apply \coqtm{inversion} to the premises $\mathit{IP}_2$ and $P_3$ to get new assumptions in the context.
+\begin{align*}
+\mathit{IH}_1 &: \forall (\inddyncon{} : \sltm{context}) (a_1 : \sltm{atm}), \seqsl[\inddyncon{}]{o_1} \rightarrow \bchsl[\inddyncon{}]{o_1}{a_1} \rightarrow \seqsl[\inddyncon{}]{\atom{a_1}} \\
+\mathit{IH}_2 &: \forall (\inddyncon{} : \sltm{context}) (a_1 : \sltm{atm}), \seqsl[\inddyncon{}]{o_2} \rightarrow \bchsl[\inddyncon{}]{o_2}{a_1} \rightarrow \seqsl[\inddyncon{}]{\atom{a_1}} \\
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}, o_1]{o_2} \\
+P_{3_1} &: \bchsl[\inddyncon{}]{o_2}{a_1} \\
+P_{3_2} &: \seqsl[\inddyncon{}]{o_1} \\[\pfshift{}]
+\cline{1-2}
+& \seqsl[\inddyncon{}]{\atom{a_1}}
+\end{align*}
+$\mathit{IH}_1$ is not useful here, since we have no way to prove sequents with $o_1$ focused. Applying $\mathit{IH}_2$ and ignoring induction hypotheses, we have:
+\begin{align*}
+\inddyncon{} &: \sltm{context} \\
+\mathit{IP}_2 &: \seqsl[\inddyncon{}, o_1]{o_2} \\
+P_{3_1} &: \bchsl[\inddyncon{}]{o_2}{a_1} \\
+P_{3_2} &: \seqsl[\inddyncon{}]{o_1} \\[\pfshift{}]
+\cline{1-2}
+& (\bchsl[\inddyncon{}, o_2]{o_2}{a_1}), (\seqsl[\inddyncon{}]{o_2}), (\bchsl[\inddyncon{}]{o_2}{a_1}) 
+\end{align*}
+The first subgoal is proven using \sltm{weakening} and assumption $P_{3_1}$, and the third subgoal by $P_{3_1}$.
+
+On trying to prove the second subgoal, we should reflect on two things; first, proving \seqsl[\inddyncon{}]{o_2} from the assumptions $\mathit{IP}_2$ and $P_{3_2}$ would be a use of the goal-reduction cut rule and second, since the \rlnmsinit{} rule only has a premise that is a backchaining sequent, we only get this part of the cut rule in the induction hypothesis. This branch cannot be continued any further. \\

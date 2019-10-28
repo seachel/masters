@@ -1,0 +1,122 @@
+\section{Mutual Structural Induction}
+\label{sec:induction}
+
+%
+%This means that there will be a subcase for each rule/constructor, and every rule with a goal-reduction premise will have an induction hypothesis and every rule with a backchaining premise will have an induction hypothesis (two when both are present). \\
+%
+%Suppose the goal is to prove
+The theorem statements in this thesis all have the form
+\begin{align*}
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}), \\
+& (\seqsl[c]{o}) \rightarrow (P_1 \; c \; o)) \;\; \wedge \\
+(\forall \; (c : \sltm{context}) & \; (o : \sltm{oo}) \; (a : \sltm{atm}), \\
+& (\bchsl[c]{o}{a}) \rightarrow (P_2 \; c \; o \; a))
+\end{align*}
+where $P_1 :$ \sltm{context} $\rightarrow$ \sltm{oo} $\rightarrow$ \coqtm{Prop} and $P_2 :$ \sltm{context} $\rightarrow$ \sltm{oo} $\rightarrow$ \sltm{atm} $\rightarrow$ \coqtm{Prop} are predicates extracted from the statement to be proven. The \coqtm{Scheme} command provides an induction principle to allow us to prove statements of the above form by mutual structural induction.
+
+To prove such a statement by mutual structural induction over \seqsl[c]{o} and \bchsl[c]{o}{a}, 15 subcases must be proven, one corresponding to each inference rule of the SL. The proof state of each subcase of this induction is constructed from an inference rule of the system.
+%as follows (where there is fresh quantification over all parameters):
+%
+We can see the sequent mutual induction principle in Figure~\ref{fig:seqind}, where each antecedent (clause of the induction principle defining the cases) corresponds to a rule of the SL and a subcase for an induction using this technique. 
+After backchaining over the induction principle, the 15 subcases are generated. As an aside, externally quantified variables in each antecedent can be introduced to the context of assumptions of the proof state and are then considered \emph{signature variables}. For example, the subcase for \rlnmsbc{} will have signature variables $c : \sltm{context}$, $o : \sltm{oo}$, and $a : \sltm{atm}$.
+\begin{figure}%[h]
+\vspace{-20pt}
+\begin{align*}
+\sltm{seq\_mutind} &: \forall (P_1 : \sltm{context} \rightarrow \sltm{oo} \rightarrow \coqtm{Prop}) (P_2 : \sltm{context} \rightarrow \sltm{oo} \rightarrow \sltm{atm} \rightarrow \coqtm{Prop}), \\
+% g_prog:
+(* \rlnmsbc{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\quad \prog{a}{o} \rightarrow \seqsl[c]{o} \rightarrow P_1 \; c \; o \rightarrow P_1 \; c \; \atom{a}) \rightarrow \\
+% g_dyn:
+(* \rlnmsinit{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\quad o \in c \rightarrow \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a \rightarrow P_1 \; c \; \atom{a}) \rightarrow \\
+% g_tt:
+(* \rlnmst{} *) & \qquad (\forall (c : \sltm{context}), P_1 \; c \; \sltm{T}) \rightarrow \\
+% g_and:
+(* \rlnmsand{} *) & \qquad (\forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}), \\
+& \qquad\quad \seqsl[c]{o_1} \rightarrow P_1 \; c \; o_1 \rightarrow \seqsl[c]{o_2} \rightarrow P_1 \; c \; o_2 \rightarrow P_1 \; c \; (o_1 \& o_2)) \rightarrow \\
+% g_imp:
+(* \rlnmsimp{} *) & \qquad (\forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}), \\
+& \qquad\quad \seqsl[c,o_1]{o_2} \rightarrow P_1 \; (c,o_1) \; o_2 \rightarrow
+P_1 \; c \; (o_1 \longrightarrow o_2)) \rightarrow \\
+% g_all:
+(* \rlnmsall{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{expr con} \rightarrow \sltm{oo}), \\
+& \qquad\quad (\forall (e : \sltm{expr con}), \hybridtm{proper} \; e \rightarrow \seqsl[c]{o \; e}) \rightarrow \\
+& \qquad\quad (\forall (e : \sltm{expr con}), \hybridtm{proper} \; e \rightarrow P_1 \; c \; (o \; e)) \rightarrow
+P_1 \; c \; (\sltm{All} \; o)) \rightarrow \\
+% g_allx:
+(* \rlnmsalls{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{X} \rightarrow \sltm{oo}), \\
+& \qquad\quad (\forall (e : \sltm{X}), \seqsl[c]{o \; e}) \rightarrow (\forall (e : \sltm{X}), P_1 \; c \; (o \; e)) \rightarrow
+P_1 \; c \; (\sltm{Allx} \; o)) \rightarrow \\
+% g_some:
+(* \rlnmssome{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{expr con} \rightarrow \sltm{oo}) (e : \sltm{expr con}), \\
+& \qquad\quad \hybridtm{proper} \; e \rightarrow \seqsl[c]{o \; e} \rightarrow P_1 \; c \; (o \; e) \rightarrow
+P_1 \; c \; (\sltm{Some} \; o)) \rightarrow \\
+% b_match:
+(* \rlnmbmatch{} *) & \qquad (\forall (c : \sltm{context}) (a : \sltm{atm})), \bchsl[c]{\atom{a}}{a}) \\
+% b_and1:
+(* \rlnmbanda{} *) & \qquad (\forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\quad \bchsl[c]{o_1}{a} \rightarrow P_2 \; c \; o_1 \; a \rightarrow P_2 \; c \; (o_1 \& o_2) \; a) \rightarrow \\
+% b_and2:
+(* \rlnmbandb{} *) & \qquad (\forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\quad \bchsl[c]{o_2}{a} \rightarrow P_2 \; c \; o_2 \; a \rightarrow P_2 \; c \; (o_1 \& o_2) \; a) \rightarrow \\
+% b_imp:
+(* \rlnmbimp{} *) & \qquad (\forall (c : \sltm{context}) (o_1 \; o_2 : \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\quad \seqsl[c]{o_1} \rightarrow P_1 \; c \; o_1 \rightarrow \bchsl[c]{o_2}{a} \rightarrow P_2 \; c \; o_2 \; a \rightarrow  \\
+& \qquad\quad P_2 \; c \; (o_1 \longrightarrow o_2) \; a) \rightarrow \\
+% b_all:
+(* \rlnmball{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{expr con} \rightarrow \sltm{oo}) (a : \sltm{atm}) (e : \sltm{expr con}), \\
+& \qquad\quad \hybridtm{proper} \; e \rightarrow \bchsl[c]{o \; e}{a} \rightarrow P_2 \; c \; (o \; e) \; a \rightarrow
+P_2 \; c \; (\sltm{All} \; o) \; a) \rightarrow \\
+% b_allx:
+(* \rlnmballs{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{X} \rightarrow \sltm{oo}) (a : \sltm{atm}) (e : \sltm{X}), \\
+& \qquad\quad \bchsl[c]{o \; e}{a}) \rightarrow P_2 \; c \; (o \; e) \; a \rightarrow
+P_2 \; c \; (\sltm{Allx} \; o) \; a \rightarrow \\
+% b_some:
+(* \rlnmbsome{} *) & \qquad (\forall (c : \sltm{context}) (o : \sltm{expr con} \rightarrow \sltm{oo}) (a : \sltm{atm}), \\
+& \qquad\quad (\forall (e : \sltm{expr con}), \hybridtm{proper} \; e \rightarrow \bchsl[c]{o \; e}{a}) \rightarrow \\
+& \qquad\quad (\forall (e : \sltm{expr con}), \hybridtm{proper} \; e \rightarrow P_2 \; c \; (o \; e) \; a) \rightarrow P_2 \; c \; (\sltm{Some} \; o) \; a) \rightarrow \\
+&(\forall (c : \; \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow P_1 \; c \; o) \; \wedge \\
+& (\forall (c : \; \sltm{context}) (o : \sltm{oo}) (a : \sltm{atm}), \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a)
+\end{align*}
+\centering{\caption{SL Sequent Mutual Induction Principle \label{fig:seqind}}}
+\vspace{-20pt}
+\end{figure}
+
+This induction principle is automatically generated following the description shown below, with examples from the figure given in each point.
+\begin{itemize}
+ \item Non-sequent premises are assumptions of the induction subcase. For example, $o \in c$ from the \rlnmsinit{} rule.
+ \item For every rule premise that is a goal-reduction sequent (with possible local quantifiers) of the form $\forall (x_1 : T_1) \cdots (x_n : T_n), \seqsl{\beta}$ where $n \geq 0$, the induction subcase has assumptions ($\forall (x_1 : T_1) \cdots (x_n : T_n), \seqsl{\beta}$) and ($\forall (x_1 : T_1) \cdots (x_n : T_n), P_1 \; \dyncon{} \; \beta$). For example, $\forall (e : \sltm{expr con}), \sltm{proper} \; e \rightarrow \seqsl[c]{o \; e}$ and $\forall (e : \sltm{expr con}), \sltm{proper} \; e \rightarrow P_1 \; c \; (o \; e)$ from the \rlnmsall{} rule with $n = 2$ and unabbreviated prefix $\forall (e : \sltm{expr con}) (H : \sltm{proper} \; e)$.
+ \item For every rule premise that is a backchaining sequent (with possible local quantifiers) of the form $\forall (x_1 : T_1) \cdots (x_n : T_n), \bchsl{\beta}{\alpha}$ where $n \geq 0$, the induction subcase has assumptions ($\forall (x_1 : T_1) \cdots (x_n : T_n), \bchsl{\beta}{\alpha}$) and ($\forall (x_1 : T_1) \cdots (x_n : T_n), P_2 \; \dyncon{} \; \beta \; \alpha$). For example, $\bchsl[c]{o_2}{a}$ and $(P_2 \; c \; o_2 \; a)$ from the \rlnmbimp{} rule.
+ \item If the rule conclusion is a goal-reduction sequent of the form \seqsl{\beta}, then the subcase goal is $P_1 \; \dyncon{} \; \beta$. For example, $(P_1 \; c \; \atom{a})$ from the \rlnmsinit{} rule.
+ \item If the rule conclusion is a backchaining sequent of the form \bchsl{\beta}{\alpha}, then the subcase goal is $P_2 \; \dyncon{} \; \beta \; \alpha$. For example, $(P_2 \; c \; (o_1 \longrightarrow o_2) \; a)$ from the \rlnmbimp{} rule.
+\end{itemize}
+Assumptions in the second and third bullets above that contain $P_1$ or $P_2$ are induction hypotheses. Implicit in the last two points is the possible introduction of more assumptions, in the case when $P_1$ and $P_2$ are dependent products themselves (i.e. contain quantification and/or implication). As a trivial example, if $P_1 \; \dyncon{} \; \beta$ is $\forall (\delta : \sltm{oo}), \beta \in \dyncon{} \rightarrow \beta \in (\dyncon{} , \delta)$, then we can introduce $\delta$ into the context as a new signature variable and $\beta \in \dyncon{}$ as a new assumption.
+We will refer to assumptions introduced this way as \emph{induction assumptions}\index{induction assumption} in future proofs, since they are from a predicate that is used to construct induction hypotheses.
+%That is, assumptions of the form $(P_1 \; \dyncon{} \; \beta)$ or $(P_2 \; \dyncon{} \; \beta \; \alpha)$ are induction hypotheses for any proof subcase for a rule with premises \seqsl{\beta} or \bchsl{\beta}{\alpha}. In this SL, exactly two cases of this induction principle have more than one induction hypothesis (\rlnmbimp{} and \rlnmsand{}).
+
+%Given specific $P_1$ and $P_2$, if we are trying to prove $(\forall (c
+%: \sltm{context}) (o : \sltm{oo}), \seqsl[c]{o} \rightarrow P_1 \; c
+%\; o) \; \wedge \; (\forall (c : \sltm{context}) (o : \sltm{oo}) (a :
+%\sltm{atm}), \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a)$,
+In describing proofs, we will follow the Coq style as introduced in Section~\ref{subsec:pfstate} and write the proof state\index{proof state} in a vertical format with the assumptions above a horizontal line and the goal below it. For example, the \rlnmsinit{} subcase requires a proof of
+\begin{align*}
+\forall (c : \sltm{context}) & (o : \sltm{oo}) (a : \sltm{atm}), \\
+& o \in c \rightarrow \bchsl[c]{o}{a} \rightarrow P_2 \; c \; o \; a \rightarrow P_1 \; c \; \atom{a}
+\end{align*}
+This can be seen in lines $4$ and $5$ in the induction principle in Figure~\ref{fig:seqind}. After introductions, the proof state will have the following form:
+
+\begin{align*}
+c &: \sltm{context} \\
+o &: \sltm{oo} \\
+a &: \sltm{atm} \\
+H_1 &: o \in c \\
+H_2 &: \bchsl[c]{o}{a} \\
+\mathit{IH} &: P_2 \; c \; o \; a \\[\pfshift{}]
+\cline{1-2}
+&P_1 \; c \; \atom{a}
+\end{align*}
+As in Coq, we provide hypothesis names so that we can refer to them as needed. Also, we often omit the type declarations of signature variables. In this case we could have omitted $c : \sltm{context}, o:\sltm{oo},$ and $a : \sltm{atm}$ because they can be easily inferred from context (they must have these types for \bchsl[c]{o}{a} to be well-typed).
+
+
+%At a higher-level of abstraction, we note that all rules of the SL
+%have one of the two following forms:

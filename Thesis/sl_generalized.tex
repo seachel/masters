@@ -1,0 +1,180 @@
+%\section{Proofs by Mutual Structural Induction over Sequents}
+
+%We have seen that the SL is a collection of rules for proving goal-reduction and backchaining sequents. These rules may have premises that are either kind of sequent, or not a sequent at all. To use this mutual induction technique to prove something about goal-reduction and backchaining sequents, we have to prove 15 subcases; one for each rule of this SL. There are a few approaches that could be taken to present such a proof:
+
+%1. state the higher-level induction structure and leave it to the reader to work out the details from the code
+
+%2. present the reasoning for all subcases
+
+%3. present the reasoning for a select few subcases to illustrate the reasoning
+
+All non-axiomatic rules of the SL have some number of premises that are either non-sequent predicates, goal-reduction sequents, or backchaining sequents. Also, all rule conclusions are sequents; this is necessary to encode these rules in inductive types \sltm{grseq} and \sltm{bcseq}. With this observation, we can generalize the rules of the SL inference system to aid our understanding and presentation of proofs presented in Chapter~\ref{ch:slind}
+
+Here we present generalized specification logic rules to reduce the number of induction cases and allow us to partition cases of proofs about the original SL based on rule structure. Our goal is to gain insight into the high-level structure of such inductive proofs, providing the proof writer and reader with the ability to understand where the difficult cases are and how similar cases can be handled in a general way.
+
+All rules have one of the following forms:
+
+\begin{prooftree}
+\Axiom$\fCenter \ol{Q_m} \args{c , o}$
+\noLine
+  \UnaryInf$\forall \ol{(x_{n,s_n} : R_{n,s_n})}, \fCenter (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n, s_n}}}})$
+  \noLine
+  \UnaryInf$\forall \ol{(y_{p,t_p} : S_{p,t_p})}, \fCenter (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}})$
+    \RightLabel{\rl{gr\_rule}}
+    \UnaryInf$\fCenter \seqsl[c]{o}$
+\end{prooftree}
+\begin{prooftree}
+\Axiom$\fCenter \ol{Q_m} \args{c , o}$
+\noLine
+  \UnaryInf$\forall \ol{(x_{n,s_n} : R_{n,s_n})}, \fCenter (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{F_n} \args{o , \ol{x_{n, s_n}}}})$
+  \noLine
+  \UnaryInf$\forall \ol{(y_{p,t_p} : S_{p,t_p})}, \fCenter (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{F'_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}})$
+    \RightLabel{\rl{bc\_rule}}
+    \UnaryInf$\fCenter \bchsl[c]{o}{a}$
+\end{prooftree}
+%$$
+%\inferH[\rl{gr\_rule}]{\seqsl[c]{o}}{\ol{Q_m} \args{c , o} & \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{G_n} \args{o , \ol{x_{n, s_n}}}}) & \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{D_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}})}
+%$$
+%or
+%$$
+%\inferH[\rl{bc\_rule}]{\bchsl[c]{o}{a}}{\ol{Q_m} \args{c , o} & \forall \ol{(x_{n,s_n} : R_{n,s_n})}, (\seqsl[c \cup \ol{\gamma_n} \args{o}]{\ol{G_n} \args{o , \ol{x_{n, s_n}}}}) & \forall \ol{(y_{p,t_p} : S_{p,t_p})}, (\bchsl[c \cup \ol{\gamma'_p} \args{o}]{\ol{D_p} \args{o , \ol{y_{p,t_p}}}}{\ol{a_p}})}
+%$$
+where $m, n, p$ represent the (possibly zero) number of non-sequent premises, goal-reduction sequent premises, and backchaining sequent premises, respectively. Note that for all rules in our implemented SL, $0\le m\le 1$, $0\le n\le 2$, and $0\le p\le 1$.
+
+We call this collection of inference rules consisting of \rl{gr\_rule} and \rl{bc\_rule} the generalized specification logic (GSL)\index{generalized specification logic (GSL)}. This is \emph{not} implemented in Coq as the previously described SL is; but rather all rules of the SL can be instantiated from the two rules of the GSL (as will be seen in Section~\ref{sec:sltogsl}). The GSL allows us to investigate the SL without needing to consider each of the 15 rules of the SL separately. This makes it possible to more efficiently study and explain the metatheory of the SL.
+
+Much of the notation used in these rules requires further explanation. A horizontal bar above an element with some subscript index, say $z$, means we have a collection of such items indexed from 1 to $z$. For example, the ``premise'' $\ol{Q_m} \args{c,o}$ represents the $m$ premises $Q_1 \args{c,o} , \ldots , Q_m \args{c,o}$. The premises with sequents can possibly have local quantification. For $i=1 , \ldots , n$, $\ol{(x_{i,s_i} : R_{i, s_i})}$ represents the prefix $(x_{i,1} : R_{i,1})\cdots(x_{i,s_i} : R_{i,s_i})$.
+
+The notation $\args{\cdot}$ is used to list arguments from the conclusion that may be used in instances of terms where it occurs. We wish to show how elements of the rule conclusion propagate through a proof.
+
+Given types $T_0, T_1 , \ldots , T_z$, when we write $F \args{a_1 : T_1 , \ldots , a_z : T_z} : T_0$, we mean a term of type $T_0$ that may contain any (sub)terms appearing in conclusion terms $a_1, \ldots , a_z$. For example, given $\gamma_1 \args{D \longrightarrow G : \sltm{oo}} : \sltm{context}$, we may ``instantiate'' this expression to $\{ D \}$. We often omit types and use definitional notation, e.g., in this case we may write $\gamma_1 \args{D \longrightarrow G} \coloneqq \{ D \}$.
+
+We infer the following typing judgments from the GSL rules:
+\begin{itemize}
+ \item For $i = 1 ,\ldots , m$, the definition of $Q_i$ may use the context and formula of the conclusion, so with full typing information, $Q_i \args{c : \sltm{context} , o : \sltm{oo}} : \coqtm{Prop}$
+ \item For $j = 1 , \ldots , n$, SL context $\gamma_j$ may use the formula of the conclusion and SL formula $F_j$ may use the formula of the conclusion and locally quantified variables. So with full typing information, $\gamma_j \args{o : \sltm{oo}} : \sltm{context}$ and $F_j \args{o : \sltm{oo} , x_{j,1} : R_{j,1} , \ldots , x_{j,s_j} : R_{j,s_j}} : \sltm{oo}$
+ \item For $k = 1 , \ldots , p$, SL context $\gamma'_k$ may use the formula of the conclusion and SL formula $F'_k$ may use the formula of the conclusion and locally quantified variables. So with full typing information $\gamma'_k \args{o : \sltm{oo}} : \sltm{context}$ and $F'_k \args{o : \sltm{oo} , y_{k,1} : S_{k,1} , \ldots , y_{k,t_k} : S_{k,t_k}} : \sltm{oo}$
+\end{itemize}
+
+%In the GSL we have made the rules general enough to capture the rules of the SL, but it could be generalized further to explore other specification logics that do not fit the restrictions here.
+
+
+\section{SL Rules from GSL Rules}
+\label{sec:sltogsl}
+
+The rules of the GSL can be instantiated to obtain the SL by specifying the values of the variables in the GSL rules. We first fill in $m$, $n$, and $p$.  Then for $i = 1 , \ldots , m$, we specify $Q_i$.  For $j = 1 , \ldots , n$, we specify $s_j, \gamma_j$, $F_j$, $x_{j,1}$, \dots , $x_{j,s_j}$, and $R_{j,1}$, \dots , $R_{j,s_j}$. For $k = 1 , \ldots , p$, we specify $\gamma'_k$, $F'_k$, $y_{k,1}$, \dots , $y_{k,t_k}$, and $S_{k,1}$, \dots , $S_{k,t_k}$. Below are instantiations for all rules of the SL.
+
+%Each rule of the SL can be ``instantiated'' from one of the GSL rules by defining the variables in the GSL rules. $m, n,$ and $p$ are natural numbers representing the number of non-sequent, goal-reduction sequent, and backchaining sequent premises, respectively. For $i = 1 \ldots m$, define $Q_i$. For $j = 1 \ldots n$, $s_j$ is the number of local quantifications for goal reduction sequent premise $j$; so also define $\gamma_j$, $F_j$, $x_{j,s_j}$, and $R_{j,s_j}$. For $k = 1 \ldots p$, $t_k$ is the number of local quantifications for backchaining sequent premise $k$; so also define $\gamma'_k$, $F'_k$, $y_{k,t_k}$, and $S_{k,t_k}$.
+
+\begin{tabular}{ c c c c c c }
+\hline
+Rule & $m$ & $n$ & $p$ & $c$ & $o$ \\
+\hline \hline \noalign{\smallskip}
+$\vcenter{\rlsbc{}}$ & 1 & 1 & 0 & \dyncon{} & \atom{A} \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$s_1 \coloneqq 0$} \\
+\multicolumn{6}{c}{$Q_1 \args{\dyncon{} , \atom{A}} \coloneqq \prog{A}{G} \;\;\;\; \gamma_1 \args{\atom{A}} \coloneqq \emptyset \;\;\;\; F_1 \args{\atom{A}} \coloneqq G$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlsinit{}}$ & 1 & 0 & 1 & \dyncon{} & \atom{A} \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$t_1 \coloneqq 0 \;\;\;\; a_1 \coloneqq A$} \\
+\multicolumn{6}{c}{$Q_1 \args{\dyncon{} , \atom{A}} \coloneqq D \in \dyncon{} \;\;\;\; \gamma'_1 \args{\atom{A}} \coloneqq \emptyset \;\;\;\; F'_1 \args{\atom{A}} \coloneqq D$} \\
+\noalign{\smallskip} \hline \hline \noalign{\bigskip}
+$\vcenter{\rlst{}}$ & 0 & 0 & 0 & \dyncon{} & \sltm{T} \\
+\noalign{\bigskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlsand{}}$ & 0 & 2 & 0 & \dyncon{} & $G_1 \& G_2$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$s_1 \coloneqq 0 \;\;\;\; s_2 \coloneqq 0$} \\
+\multicolumn{6}{c}{$\gamma_1 \args{G_1 \& G_2} \coloneqq \emptyset \;\;\;\; F_1 \args{G_1 \& G_2} \coloneqq G_1$} \\
+\multicolumn{6}{c}{$\gamma_2 \args{G_1 \& G_2} \coloneqq \emptyset \;\;\;\; F_2 \args{G_1 \& G_2} \coloneqq G_2$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlsimp{}}$ & 0 & 1 & 0 & \dyncon{} & $D \longrightarrow G$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$s_1 \coloneqq 0 \;\;\;\; \gamma_1 \args{D \longrightarrow G} \coloneqq \{ D \} \;\;\;\; F_1 \args{D \longrightarrow G} \coloneqq G$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlsall{}}$ & 0 & 1 & 0 & \dyncon{} & $\sltm{All} \; G$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$s_1 \coloneqq 2 \;\;\;\; x_{1,1} \coloneqq E \;\;\;\; R_{1,1} \coloneqq \sltm{expr con} \;\;\;\; x_{1,2} \coloneqq H \;\;\;\; R_{1,2} \coloneqq \sltm{proper} \; E$} \\
+\multicolumn{6}{c}{$\gamma_1 \args{\sltm{All} \; G} \coloneqq \emptyset \;\;\;\; F_1 \args{\sltm{All} \; G , E , H} \coloneqq G \; E$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlsalls{}}$ & 0 & 1 & 0 & \dyncon{} & $\sltm{Allx} \; G$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$s_1 \coloneqq 1 \;\;\;\; x_{1,1} \coloneqq E \;\;\;\; R_{1,1} \coloneqq \sltm{X}$} \\
+\multicolumn{6}{c}{$\gamma_1 \args{\sltm{Allx} \; G} \coloneqq \emptyset \;\;\;\; F_1 \args{\sltm{Allx} \; G , E , H} \coloneqq G \; E$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlssome{}}$ & 1 & 1 & 0 & \dyncon{} & $\sltm{Some} \; G$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$s_1 \coloneqq 0$} \\
+\multicolumn{6}{c}{$Q_1 \args{\dyncon{} , \sltm{Some} \; G} \coloneqq \sltm{proper} \; E \;\;\;\; \gamma_1 \args{\sltm{Some} \; G} \coloneqq \emptyset \;\;\;\; F_1 \args{\sltm{Some} \; G} \coloneqq G \; E$} \\
+\noalign{\smallskip} \hline
+\end{tabular}
+
+\noindent
+\begin{tabular}{ c c c c c c }
+\hline
+Rule & $m$ & $n$ & $p$ & $c$ & $o$ \\
+\noalign{\smallskip} \hline \hline \noalign{\bigskip}
+$\vcenter{\rlbmatch{}}$ & 0 & 0 & 0 & \dyncon{} & \atom{A} \\
+\noalign{\bigskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlbanda{}}$ & 0 & 0 & 1 & \dyncon{} & $D_1 \& D_2$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$t_1 \coloneqq 0 \;\;\;\; a_1 \coloneqq A \;\;\;\; \gamma'_1 \args{D_1 \& D_2} \coloneqq \emptyset \;\;\;\; F'_1 \args{D_1 \& D_2} \coloneqq D_1$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlbandb{}}$ & 0 & 0 & 1 & \dyncon{} & $D_1 \& D_2$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$t_1 \coloneqq 0 \;\;\;\; a_1 \coloneqq A \;\;\;\; \gamma'_1 \args{D_1 \& D_2} \coloneqq \emptyset \;\;\;\; F'_1 \args{D_1 \& D_2} \coloneqq D_2$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlbimp{}}$ & 0 & 1 & 1 & \dyncon{} & $G \longrightarrow D$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$s_1 \coloneqq 0 \;\;\;\; t_1 \coloneqq 0 \;\;\;\; a_1 \coloneqq A$} \\
+\multicolumn{6}{c}{$\gamma_1 \args{G \longrightarrow D} \coloneqq \emptyset \;\;\;\; F_1 \args{G \longrightarrow D} \coloneqq G$} \\
+\multicolumn{6}{c}{$\gamma'_1 \args{G \longrightarrow D} \coloneqq \emptyset \;\;\;\; F'_1 \args{G \longrightarrow D} \coloneqq D$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlball{}}$ & 1 & 0 & 1 & \dyncon{} & $\sltm{All} \; D$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$t_1 \coloneqq 0 \;\;\;\; a_1 \coloneqq A$} \\
+\multicolumn{6}{c}{$Q_1 \args{\dyncon{} , \sltm{All} \; D} \coloneqq \sltm{proper} \; E \;\;\;\; \gamma'_1 \args{\sltm{All} \; D} \coloneqq \emptyset \;\;\;\; F'_1 \args{\sltm{All} \; D} \coloneqq D \; E$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlballs{}}$ & 0 & 0 & 1 & \dyncon{} & $\sltm{All} \; D$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$t_1 \coloneqq 0 \;\;\;\; a_1 \coloneqq A$} \\
+\multicolumn{6}{c}{$\gamma'_1 \args{\sltm{Allx} \; D} \coloneqq \emptyset \;\;\;\; F'_1 \args{\sltm{Allx} \; D} \coloneqq D \; E$} \\
+\noalign{\smallskip} \hline \hline \noalign{\smallskip}
+$\vcenter{\rlbsome{}}$ & 0 & 0 & 1 & \dyncon{} & $\sltm{Some} \; D$ \\
+\noalign{\smallskip} \hline \noalign{\smallskip}
+\multicolumn{6}{c}{$t_1 \coloneqq 2 \;\;\;\; y_{1,1} \coloneqq E \;\;\;\; S_{1,1} \coloneqq \sltm{expr con} \;\;\;\; y_{1,2} \coloneqq H \;\;\;\; S_{1,2} \coloneqq \sltm{proper} \; E \;\;\;\; a_1 \coloneqq A$} \\
+\multicolumn{6}{c}{$\gamma'_1 \args{\sltm{Some} \; D , E , H} \coloneqq \emptyset \;\;\;\; F'_1 \args{\sltm{Some} \; D , E , H} \coloneqq D \; E$} \\
+\noalign{\smallskip} \hline
+\end{tabular}
+
+\bigskip
+
+Notice that for the \rlnmsinit{} rule, $D$ appears in $Q_1$, even though it is not in the argument list of $Q_1$. The notation $\args{\cdot}$ only specifies arguments from the rule conclusion. Any variables that only appear in the premises of a rule of the SL are also permitted to appear in the propositions, formulas, and contexts when specializing the premises of a GSL rule to obtain the premises of a specific SL rule (these are the signature variables for induction subcases corresponding to these rules).
+
+%\paragraph{\rlsbc{}} ~\\
+
+%Uses partial function $\mathit{extr} : \sltm{oo} \rightarrow \sltm{atm}$ to extract the atom from atomic formulas and we refer to some externally quantified $G : \sltm{oo}$. We have $m = 1, n = 1, p = 0, s_n = 0$ so we define $Q_i \args{c , o} \coloneqq \prog{(\mathit{extr} \; o)}{G}$, $\gamma_1 \args{o} \coloneqq \emptyset$, and $G_1 \args{o} \coloneqq G$. \\
+
+%Then we can write \rlnmsbc{} as $\vcenter{\infer[\rlnmsbc{}]{\seqsl{\atom{A}}}{Q_1 \args{\dyncon{} , \atom{A}} & \seqsl[\dyncon{} \cup \gamma_1 \args{\atom{A}}]{G_1 \args{\atom{A}}}}}$.
+
+%\paragraph{\rlsand{}} ~\\
+
+%Uses partial functions $\mathit{fst} : \sltm{oo} \rightarrow \sltm{oo}$ and $\mathit{snd} : \sltm{oo} \rightarrow \sltm{oo}$ to extract the first and second conjunts, respectively, of a formula that is a conjunction. We have $m = 0, n = 2, p = 0, s_n = 0$ so we define $\gamma_1 \args{o} \coloneqq \emptyset$, $\gamma_2 \args{o} \coloneqq \emptyset$, $G_1 \args{o} \coloneqq (\mathit{fst} \; o)$, and $G_2 \args{o} \coloneqq (\mathit{snd} \; o)$. \\
+
+%...eeks... rule naming issue where formulas $G_1$ and $G_2$ conflict with these in generalize rule. will need to rename something. Use $\ol{F_n}$ and $\ol{F'_p}$ in generalized rule? \\
+
+%Then we can write \rlnmsand{} as $\vcenter{\infer[\rlnmsand{}]{\seqsl{o_1 \& o_2}}{\seqsl[\dyncon{} \cup \gamma_1 \args{o_1 \& o_2}]{G_1 \args{o_1 \& o_2}} & \seqsl[\dyncon{} \cup \gamma_2 \args{o_1 \& o_2}]{G_2 \args{o_1 \& o_2}}}}$.
+
+
+%where $i$ (possibly zero) is the number of non-sequent premises, and
+%$\overline{Q_i}$ denotes the $i$ hypotheses $Q_1,\ldots,Q_i$.
+%Similarly for $j$ and $k$ and the corresponding goal-reduction sequent
+%premises and backchaining sequent premises, respectively.  Note that
+%for all the rules in our SL, $0\le i,k\le 1$ and $0\le j\le 2$.
+
+%With these rule forms, we can begin to explore how proofs using mutual structural induction over sequents may be constructed without appealing to individual rules of the SL. We let the details of the statement to be proven dictate the constraints on the rule. The motivation for this approach is to encapsulate multiple proof subcases into (at most) two arguments so that such a proof explanation can be both comprehensive and brief. A benefit of this approach is that we build the proof gradually from these rules, using the minimum number of constraints on them to prove the desired metatheorems about this logic. We can then apply these proofs to any specification logic that satisfies the same constraints.
+
+%Suppose the non-sequent rule premise depends on the contexts, formulas, and atoms that occur elsewhere in the rule. For brevity we will simply write $Q_i$ until we need further consideration of its use in hypotheses or goals, at which time we will write $Q_i$ followed by a list of arguments that may be part of its definition. This list will vary according to the rule constraints necessary for each proof.
+
+
+%The only rule variables that cannot be instantiated as we choose are those occuring in the goal. So we will allow $Q_i$ to depend on the context and formula from the conclusion of the rule, writing hypothesis $H_i$ as $Q_i \; c \; o$. One of the current subgoals of the proof is $Q_i \; \dyncon{} \; \beta$. To prove this subgoal, we rely on some induction assumptions introduced after unfolding $P_1$ to allow us to use $H_i$

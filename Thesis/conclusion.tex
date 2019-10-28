@@ -1,0 +1,24 @@
+In this thesis we have seen how the Coq implementation of Hybrid has been extended by the addition of a new specification logic (SL) based on hereditary Harrop formulas. This extension increases the class of object logics that Hybrid can reason about efficiently. The metatheory of this SL is formalized in Coq with proofs by mutual structural induction over the structure of sequent types. We saw the proofs of some specific subcases and the later insight that many of the cases are proven in a similar way. This led to the development of a generalized SL and form of metatheory statement that we could use to better understand the proofs of the SL metatheory.
+
+\section{Related Work}
+
+Throughout this thesis we have seen some mention of related work. Hybrid is a system implementing HOAS and as seen in Section~\ref{sec:hybridcompare} there are other systems with the same goal that also use this technique. As previously discussed, Hybrid is the only known system implementing HOAS in an existing trusted general-purpose theorem prover. See~\cite{FMP:CoRR15} and~\cite{FMP:JAR15} for a more in-depth comparison of these systems on benchmarks defined there.
+
+Although this work is contributing to the area of mechanizing programming language metatheory, the majority of the research presented here is applicable to the more general field of proof theory. We have seen proofs of the admissibility of structural rules of a specific sequent calculus, as well as a generalized sequent calculus which we tried to make only as general as necessary to encapsulate the specification logic presented earlier. Typically these kinds of proofs are by an induction on the height of derivations, but here we have proofs by mutual structural induction over dependent sequent types; the structural proofs in this thesis follow the style of Pfenning in~\cite{Pfenning:IC00}. The sequents in our logic do not have a natural number to represent the height of the derivation. So our presentation of this sequent calculus is perhaps more ``pure'' in some sense, but we may have lost a way to reason about some object logics. It is not yet clear if building proof height into the definition sequents is necessary for studying some object logics. Overall, a better understanding of the relationship between proofs of the metatheory of sequent calculi by induction on the height of derivations versus over the structure of sequents is desirable.
+
+\section{Future Work}
+
+The highest priority future task is to show the utility of the new specification logic in Hybrid. This will be done by presenting an object logic that makes use of the higher-order nature (in the sense of unrestricted implicational complexity) of the new specification logic. Object logics that we plan to represent include:
+\begin{itemize}
+ \item correspondence between HOAS and de Bruijn encodings of untyped $\lambda$-terms; this is our example OL of Chapter~\ref{ch:hybrid} but we have not yet proven Theorems~\ref{thm:hodb_det1} and~\ref{thm:hodb_det3} of Section~\ref{sec:hybridol} (see~\cite{WCGN:PPDP13})
+ \item structural characterization of reductions on untyped $\lambda$-terms (see~\cite{WCGN:PPDP13})
+ \item algorithmic specification of bounded subtype polymorphism in System F (see~\cite{Pientka:TPHOLs07}); this comes from the \poplmark{} challenge~\cite{Aydemir05TPHOLs}
+\end{itemize}
+We would also like to add automation to proofs containing object logic judgments so that the user of Hybrid will not need to be an expert user of proof assistants to be able to use the system.
+
+The encoding of the new Hybrid SL follows the development of the specification logic of Abella as presented in~\cite{WCGN:PPDP13}, but it seems that the proofs of the admissibility of the structural rules differ between these systems. These proofs in Abella are not fully explained in~\cite{WCGN:PPDP13} so some work will need to be done to compare the different proofs. Also, the proof of cut admissibility for this specification logic in Abella requires a third conjunct that we did not need for our proof:
+$$
+\forall (c : \sltm{context}) (o : \sltm{oo}) (a: \hybridtm{atm}),\\
+\seqsl[c]{o} \rightarrow \bchsl[c]{o}{a} \rightarrow \seqsl[c]{\atom{a}}
+$$
+Our understanding so far is that these proofs in Abella are over the height of derivations, which is an implicit parameter; it is not by structural induction over sequents in the fashion of the proofs founding this thesis.

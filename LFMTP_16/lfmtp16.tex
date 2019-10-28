@@ -1,0 +1,173 @@
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
+
+
+%\documentclass[preprint]{sigplanconf}
+\documentclass{sigplanconf}
+
+% The following \documentclass options may be useful:
+
+% preprint      Remove this option only once the paper is in final form.
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% numbers       To obtain numeric citation style instead of author/year.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% PACKAGES
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{listings}
+\usepackage{multicol}
+%\usepackage{stmaryrd}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{proof}
+%\usepackage{lscape}
+\usepackage{url}
+
+
+%\mathchardef\mhyphen="2D % Define a "math hyphen"
+
+
+\input{formatting}
+
+
+\newcommand{\cL}{{\cal L}}
+\newcommand{\foldn}{\ensuremath{FO\lambda^{\Delta I\!\!N}}}
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{LFMTP '16}{June 23, 2016, Porto, Portugal}
+\copyrightyear{2016}
+%\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+\copyrightdata{978-1-4503-4777-8/16/06}
+\copyrightdoi{http://dx.doi.org/10.1145/2966268.2966271}
+
+% Uncomment the publication rights you want to use.
+\publicationrights{transferred}
+%\publicationrights{licensed}     % this is the default
+%\publicationrights{author-pays}
+
+%\titlebanner{banner above paper title}        % These are ignored unless
+%\preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{The Logic of Hereditary Harrop Formulas as a Specification
+  Logic for Hybrid}
+%\title{Two-Level Reasoning in Hybrid with Higher-Order Logic}
+%\subtitle{}
+
+\authorinfo{Chelsea Battell}
+           {Department of Mathematics and Statistics\\
+            University of Ottawa, Canada}
+           {cbattell@uottawa.ca}
+\authorinfo{Amy Felty}
+           {School of Electrical Engineering and Computer Science\\
+            and Department of Mathematics and Statistics\\
+            University of Ottawa, Canada}
+           {afelty@uottawa.ca}
+
+\maketitle
+
+\begin{abstract}
+  Hybrid is a logical framework that supports the use of higher-order
+  abstract syntax (HOAS) in representing formal systems or ``object
+  logics'' (OLs).  It is implemented in Coq and follows a two-level
+  approach, where a specification logic (SL) is implemented as an
+  inductive type and used to concisely and elegantly encode the
+  inference rules of the formal systems of interest.  In this paper,
+  we develop a new higher-order specification logic for Hybrid.  By
+  increasing the expressive power of the SL beyond what was considered
+  previously, we increase the flexibility of encoding OLs and thus
+  extend the class of formal systems for which we can reason about
+  efficiently.  We focus on formalizing the meta-theory of the SL.
+% new:
+  We develop an abstract way in which to present an important class of
+  meta-theorems.  This class includes
+%
+  properties such as weakening, contraction, exchange, and the
+  admissibility of the cut rule.  The cut admissibility theorem
+  establishes consistency and also provides justification for
+  substituting a formula for an assumption in a context of
+  assumptions.  It can greatly simplify reasoning about OLs in systems
+  that provide HOAS.
+%  We discuss the proof of this theorem in detail, illustrating the
+%  challenges of its formalization.
+% new:
+  We present the abstraction and show how it is used to prove all of
+  these theorems.
+\end{abstract}
+
+%\category{CR-number}{subcategory}{third-level}
+\category{F.3.1}{Logics and Meanings of Programs}{Specifying and
+Verifying and Reasoning about Programs}
+\category{F.4.1}{Mathematical Logic and Formal Languages}{Mathematical
+Logic}
+
+% general terms are not compulsory anymore,
+% you may leave them out
+%\terms
+%term1, term2
+
+\keywords
+logical frameworks, higher-order abstract syntax, cut admissibility,
+structural rules, interactive theorem proving, Coq
+
+\input{intro}
+
+\input{hybrid}                                                                 
+
+\input{sl}
+
+\input{structind}
+
+\input{sl_generalized}
+
+\input{gsl_ind}
+
+\input{structrules}
+
+\input{cutadmiss}
+
+\input{conclusion}
+
+%\appendix
+%\section{Appendix Title}
+%
+%This is the text of the appendix, if you need one.
+
+\acks
+
+\input{acks}
+
+% We recommend abbrvnat bibliography style.
+
+\bibliographystyle{abbrvnat}
+\bibliography{lfmtp16}   
+
+% The bibliography should be embedded for final submission.
+
+\end{document}
